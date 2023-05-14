@@ -68,8 +68,8 @@
     <Compile Include="BuildingInfo.cs" />
     <Compile Include="ConstructionRequest.cs" />
     <Compile Include="CustomerInfo.cs" />
+    <Compile Include="Estimate.cs" />
     <Compile Include="EstimateDetail.cs" />
-    <Compile Include="EstimationTable.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
