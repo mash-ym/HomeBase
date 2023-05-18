@@ -20,9 +20,8 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public CustomerInfoRepository(string dbPath)
+        public CustomerInfoRepository(SQLiteConnection connection)
         {
-            connectionString = $"Data Source={dbPath};";
         }
 
         public void CreateCustomerInfo(CustomerInfo customerInfo)

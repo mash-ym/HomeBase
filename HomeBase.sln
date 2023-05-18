@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeBase", "HomeBase\HomeBa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目", "ソリューション項目", "{6691816E-349D-4FA7-8176-6317A4B9FA2E}"
 	ProjectSection(SolutionItems) = preProject
-		DataBase.sql = DataBase.sql
+		DataBase.db = DataBase.db
 	EndProjectSection
 EndProject
 Global

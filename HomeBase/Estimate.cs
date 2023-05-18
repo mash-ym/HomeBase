@@ -25,9 +25,9 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public EstimateRepository(string dbPath)
+        public EstimateRepository(SQLiteConnection connection)
         {
-            connectionString = $"Data Source={dbPath};";
+            
         }
 
         public void CreateEstimate(Estimate estimate)

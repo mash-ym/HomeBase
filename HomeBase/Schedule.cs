@@ -20,9 +20,9 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public ScheduleRepository(string dbPath)
+        public ScheduleRepository(SQLiteConnection connection)
         {
-            connectionString = $"Data Source={dbPath};";
+            
         }
 
         public void CreateSchedule(Schedule schedule)

@@ -21,9 +21,8 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public BuildingInfoRepository(string dbPath)
-        {
-            connectionString = $"Data Source={dbPath};";
+        public BuildingInfoRepository(SQLiteConnection connection)
+        { 
         }
 
         public void CreateBuildingInfo(BuildingInfo buildingInfo)

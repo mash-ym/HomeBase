@@ -19,16 +19,7 @@ namespace HomeBase
                 connection.Open();
 
                 CreateTables(connection);
-
-                // リポジトリの作成処理
-                CustomerInfoRepository customerRepository = new CustomerInfoRepository(connection);
-                BuildingInfoRepository buildingRepository = new BuildingInfoRepository(connection);
-                ConstructionRequestRepository constructionRequestRepository = new ConstructionRequestRepository(connection);
-                EstimateRepository estimateRepository = new EstimateRepository(connection);
-                EstimateDetailRepository estimateDetailRepository = new EstimateDetailRepository(connection);
-                RequestInfoRepository requestInfoRepository = new RequestInfoRepository(connection);
-                ScheduleRepository scheduleRepository = new ScheduleRepository(connection);
-                SubcontractorRepository subcontractorRepository = new SubcontractorRepository(connection);
+                CreateRepositories(connection);
 
                 connection.Close();
             }
@@ -44,11 +35,24 @@ namespace HomeBase
             CreateEstimateDetailTable(connection);
             CreateRequestInfoTable(connection);
             CreateScheduleTable(connection);
-            CreateSubconstractorTable(connection);
+            CreateSubcontractorTable(connection);
         }
+        private void CreateRepositories(SQLiteConnection connection)
+        {
+            CustomerInfoRepository customerRepository = new CustomerInfoRepository(connection);
+            BuildingInfoRepository buildingRepository = new BuildingInfoRepository(connection);
+            ConstructionRequestRepository constructionRequestRepository = new ConstructionRequestRepository(connection);
+            EstimateRepository estimateRepository = new EstimateRepository(connection);
+            EstimateDetailRepository estimateDetailRepository = new EstimateDetailRepository(connection);
+            RequestInfoRepository requestInfoRepository = new RequestInfoRepository(connection);
+            ScheduleRepository scheduleRepository = new ScheduleRepository(connection);
+            SubcontractorRepository subcontractorRepository = new SubcontractorRepository(connection);
+        }
+
 
         private void CreateCustomerInfoTable(SQLiteConnection connection)
         {
+            // CustomerInfoテーブルの作成処理
             string createQuery = @"
                 CREATE TABLE IF NOT EXISTS CustomerInfo (
                     customer_info_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +61,8 @@ namespace HomeBase
                     phone_number TEXT,
                     email_address TEXT,
                     project_history TEXT,
-                    rating INTEGER
+                    rating INTEGER,
+                    FOREIGN KEY (building_info_id) REFERENCES BuildingInfo (building_info_id)
                 );
             ";
 
@@ -66,7 +71,6 @@ namespace HomeBase
                 command.ExecuteNonQuery();
             }
         }
-
         private void CreateBuildingInfoTable(SQLiteConnection connection)
         {
             // BuildingInfoテーブルの作成処理
@@ -88,33 +92,33 @@ namespace HomeBase
                 command.ExecuteNonQuery();
             }
         }
-
         private void CreateConstructionTable(SQLiteConnection connection)
         {
-            using (SQLiteCommand command = connection.CreateCommand())
+            // Constructionテーブルの作成処理
+            string createQuery = @"
+                CREATE TABLE IF NOT EXISTS Construction (
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    RequestID INTEGER NOT NULL,
+                    EstimateID INTEGER NOT NULL,
+                    StartDate DATE,
+                    SubcontractorID INTEGER,
+                    SiteContact TEXT,
+                    SalesContact TEXT,
+                    DrawingPDF BLOB,
+                    FOREIGN KEY (RequestID) REFERENCES RequestInfo (RequestInfoID),
+                    FOREIGN KEY (EstimateID) REFERENCES Estimate (EstimateID),
+                    FOREIGN KEY (SubcontractorID) REFERENCES Subcontractor (SubcontractorID)
+                    );
+            ";
+            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
             {
-                command.CommandText = @"
-            CREATE TABLE IF NOT EXISTS Construction (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                RequestID INTEGER NOT NULL,
-                EstimateID INTEGER NOT NULL,
-                StartDate DATE,
-                SubcontractorID INTEGER,
-                SiteContact TEXT,
-                SalesContact TEXT,
-                DrawingPDF BLOB,
-                FOREIGN KEY (RequestID) REFERENCES RequestInfo (ID),
-                FOREIGN KEY (EstimateID) REFERENCES Estimate (EstimateID),
-                FOREIGN KEY (SubcontractorID) REFERENCES Subcontractor (ID)
-            )";
                 command.ExecuteNonQuery();
             }
         }
         private void CreateEstimateTable(SQLiteConnection connection)
         {
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = @"
+            // Estimateテーブルの作成処理
+            string createQuery = @"
             CREATE TABLE IF NOT EXISTS Estimate (
                 EstimateID INTEGER PRIMARY KEY AUTOINCREMENT,
                 SiteName TEXT,
@@ -130,20 +134,22 @@ namespace HomeBase
                 RevisionHistory TEXT,
                 DeliveryLocation TEXT,
                 DrawingPDF BLOB,
-                UNIQUE (EstimateID)
                 FOREIGN KEY (RequestInfoID) REFERENCES RequestInfo (RequestInfoID),
                 FOREIGN KEY (CustomerInfoID) REFERENCES CustomerInfo (CustomerInfoID),
                 FOREIGN KEY (BuildingInfoID) REFERENCES BuildingInfo (BuildingInfoID),
                 FOREIGN KEY (CreatorID) REFERENCES Creator (CreatorID)
-            )";
+            );
+        ";
+
+            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            {
                 command.ExecuteNonQuery();
             }
         }
         private void CreateEstimateDetailTable(SQLiteConnection connection)
         {
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = @"
+            // EstimateDetailテーブルの作成処理
+            string createQuery = @"
             CREATE TABLE IF NOT EXISTS EstimateDetail (
                 DetailID INTEGER PRIMARY KEY AUTOINCREMENT,
                 EstimateID INTEGER,
@@ -164,15 +170,18 @@ namespace HomeBase
                 Dependency TEXT,
                 FOREIGN KEY (EstimateID) REFERENCES Estimate (EstimateID),
                 FOREIGN KEY (SubcontractorID) REFERENCES Subcontractor (SubcontractorID)
-            )";
+            );
+        ";
+
+            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            {
                 command.ExecuteNonQuery();
             }
         }
         private void CreateRequestInfoTable(SQLiteConnection connection)
         {
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = @"
+            // RequestInfoテーブルの作成処理
+            string createQuery = @"
             CREATE TABLE IF NOT EXISTS RequestInfo (
                 RequestInfoID INTEGER PRIMARY KEY AUTOINCREMENT,
                 CustomerID INTEGER,
@@ -185,15 +194,18 @@ namespace HomeBase
                 FOREIGN KEY (CustomerID) REFERENCES CustomerInfo (CustomerInfoID),
                 FOREIGN KEY (ReferrerID) REFERENCES Referrer (ReferrerID),
                 FOREIGN KEY (BuildingInfoID) REFERENCES BuildingInfo (BuildingInfoID)
-            )";
+            );
+        ";
+
+            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            {
                 command.ExecuteNonQuery();
             }
         }
         private void CreateScheduleTable(SQLiteConnection connection)
         {
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = @"
+            // Scheduleテーブルの作成処理
+            string createQuery = @"
             CREATE TABLE IF NOT EXISTS Schedule (
                 ScheduleID INTEGER PRIMARY KEY AUTOINCREMENT,
                 SiteName TEXT,
@@ -204,30 +216,34 @@ namespace HomeBase
                 WorkHours REAL,
                 SubcontractorID INTEGER,
                 FOREIGN KEY (SubcontractorID) REFERENCES Subcontractor (SubcontractorID)
-            )";
+            );
+        ";
+
+            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            {
                 command.ExecuteNonQuery();
             }
         }
         private void CreateSubcontractorTable(SQLiteConnection connection)
         {
-            using (SQLiteCommand command = connection.CreateCommand())
+            string createQuery = @"
+                CREATE TABLE IF NOT EXISTS Subcontractor (
+                    SubcontractorID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    CompanyName TEXT,
+                    Address TEXT,
+                    Occupation TEXT,
+                    PhoneNumber TEXT,
+                    EmailAddress TEXT,
+                    SNSInfo TEXT
+                );
+            ";
+
+            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
             {
-                command.CommandText = @"
-            CREATE TABLE IF NOT EXISTS Subcontractor (
-                SubcontractorID INTEGER PRIMARY KEY AUTOINCREMENT,
-                CompanyName TEXT,
-                Address TEXT,
-                Occupation TEXT,
-                PhoneNumber TEXT,
-                EmailAddress TEXT,
-                SNSInfo TEXT
-            )";
                 command.ExecuteNonQuery();
             }
         }
 
-
-        // 他のリポジトリの作成処理
     }
 
 }

@@ -21,9 +21,9 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public RequestInfoRepository(string dbPath)
+        public RequestInfoRepository(SQLiteConnection connection)
         {
-            connectionString = $"Data Source={dbPath};";
+            
         }
 
         public void CreateRequestInfo(RequestInfo requestInfo)

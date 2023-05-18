@@ -19,9 +19,9 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public SubcontractorRepository(string dbPath)
+        public SubcontractorRepository(SQLiteConnection connection)
         {
-            connectionString = $"Data Source={dbPath};";
+            
         }
 
         public void CreateSubcontractor(Subcontractor subcontractor)

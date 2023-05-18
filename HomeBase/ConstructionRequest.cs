@@ -23,9 +23,8 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public ConstructionRequestRepository(string dbPath)
+        public ConstructionRequestRepository(SQLiteConnection connection)
         {
-            connectionString = $"Data Source={dbPath};";
         }
 
         public void CreateConstructionRequest(ConstructionRequest constructionRequest)
