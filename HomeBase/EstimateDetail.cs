@@ -57,7 +57,7 @@ namespace HomeBase
 
         public EstimateDetailRepository(SQLiteConnection connection)
         {
-            
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateEstimateDetail(EstimateDetail estimateDetail)

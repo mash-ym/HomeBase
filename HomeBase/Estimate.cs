@@ -27,7 +27,7 @@ namespace HomeBase
 
         public EstimateRepository(SQLiteConnection connection)
         {
-            
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateEstimate(Estimate estimate)

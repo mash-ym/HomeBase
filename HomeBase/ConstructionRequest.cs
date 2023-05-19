@@ -25,6 +25,7 @@ namespace HomeBase
 
         public ConstructionRequestRepository(SQLiteConnection connection)
         {
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateConstructionRequest(ConstructionRequest constructionRequest)

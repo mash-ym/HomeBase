@@ -21,7 +21,7 @@ namespace HomeBase
 
         public SubcontractorRepository(SQLiteConnection connection)
         {
-            
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateSubcontractor(Subcontractor subcontractor)

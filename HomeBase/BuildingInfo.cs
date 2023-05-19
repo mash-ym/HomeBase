@@ -22,7 +22,8 @@ namespace HomeBase
         private string connectionString;
 
         public BuildingInfoRepository(SQLiteConnection connection)
-        { 
+        {
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateBuildingInfo(BuildingInfo buildingInfo)

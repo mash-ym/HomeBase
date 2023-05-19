@@ -22,7 +22,7 @@ namespace HomeBase
 
         public ScheduleRepository(SQLiteConnection connection)
         {
-            
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateSchedule(Schedule schedule)

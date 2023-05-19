@@ -7,11 +7,10 @@ namespace HomeBase
     {
         private string connectionString;
 
-        public DBInitializer(string connectionString)
+        public DBInitializer(SQLiteConnection connection)
         {
-            this.connectionString = connectionString;
+            connectionString = connection.ConnectionString;
         }
-
         public void InitializeDatabase()
         {
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -24,8 +23,7 @@ namespace HomeBase
                 connection.Close();
             }
         }
-
-        private void CreateTables(SQLiteConnection connection)
+        public void CreateTables(SQLiteConnection connection)
         {
             // テーブルの作成処理
             CreateCustomerInfoTable(connection);
@@ -48,8 +46,6 @@ namespace HomeBase
             ScheduleRepository scheduleRepository = new ScheduleRepository(connection);
             SubcontractorRepository subcontractorRepository = new SubcontractorRepository(connection);
         }
-
-
         private void CreateCustomerInfoTable(SQLiteConnection connection)
         {
             // CustomerInfoテーブルの作成処理
@@ -66,10 +62,20 @@ namespace HomeBase
                 );
             ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateBuildingInfoTable(SQLiteConnection connection)
         {
@@ -87,10 +93,20 @@ namespace HomeBase
                 );
             ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateConstructionTable(SQLiteConnection connection)
         {
@@ -110,10 +126,20 @@ namespace HomeBase
                     FOREIGN KEY (SubcontractorID) REFERENCES Subcontractor (SubcontractorID)
                     );
             ";
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateEstimateTable(SQLiteConnection connection)
         {
@@ -141,10 +167,20 @@ namespace HomeBase
             );
         ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateEstimateDetailTable(SQLiteConnection connection)
         {
@@ -173,10 +209,20 @@ namespace HomeBase
             );
         ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateRequestInfoTable(SQLiteConnection connection)
         {
@@ -197,10 +243,20 @@ namespace HomeBase
             );
         ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateScheduleTable(SQLiteConnection connection)
         {
@@ -219,10 +275,20 @@ namespace HomeBase
             );
         ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
         private void CreateSubcontractorTable(SQLiteConnection connection)
         {
@@ -238,10 +304,20 @@ namespace HomeBase
                 );
             ";
 
-            using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
+                using (SQLiteCommand command = new SQLiteCommand(createQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
+            catch (Exception ex)
+            {
+                // 例外の処理
+                Console.WriteLine("データベースの操作中にエラーが発生しました: " + ex.Message);
+                // 例外の再スローまたはログの記録など、適切な処理を行ってください。
+            }
+
         }
 
     }

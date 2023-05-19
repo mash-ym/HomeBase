@@ -23,7 +23,7 @@ namespace HomeBase
 
         public RequestInfoRepository(SQLiteConnection connection)
         {
-            
+            connectionString = connection.ConnectionString;
         }
 
         public void CreateRequestInfo(RequestInfo requestInfo)
