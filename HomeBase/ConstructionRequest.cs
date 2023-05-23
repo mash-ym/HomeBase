@@ -28,96 +28,67 @@ namespace HomeBase
             connectionString = connection.ConnectionString;
         }
 
-        public void CreateConstructionRequest(ConstructionRequest constructionRequest)
+        public void AddConstructionRequest(ConstructionRequest constructionRequest)
         {
+            string insertQuery = @"
+            INSERT INTO ConstructionRequest (
+                estimate_id, item_name, cost_quantity, cost_unit, cost_unit_price,
+                work_hours, start_date, subcontractor_id, site_contact, sales_contact, drawing_pdf
+            ) VALUES (
+                @EstimateId, @ItemName, @CostQuantity, @CostUnit, @CostUnitPrice,
+                @WorkHours, @StartDate, @SubcontractorId, @SiteContact, @SalesContact, @DrawingPdf
+            );
+        ";
+
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (SQLiteCommand command = new SQLiteCommand(insertQuery, connection))
             {
+                command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
+                command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
+                command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
+                command.Parameters.AddWithValue("@CostUnit", constructionRequest.CostUnit);
+                command.Parameters.AddWithValue("@CostUnitPrice", constructionRequest.CostUnitPrice);
+                command.Parameters.AddWithValue("@WorkHours", constructionRequest.WorkHours);
+                command.Parameters.AddWithValue("@StartDate", constructionRequest.StartDate);
+                command.Parameters.AddWithValue("@SubcontractorId", constructionRequest.SubcontractorId);
+                command.Parameters.AddWithValue("@SiteContact", constructionRequest.SiteContact);
+                command.Parameters.AddWithValue("@SalesContact", constructionRequest.SalesContact);
+                command.Parameters.AddWithValue("@DrawingPdf", constructionRequest.DrawingPDF);
+
                 connection.Open();
-
-                string query = @"INSERT INTO ConstructionRequest (request_id, estimate_id, item_name, cost_quantity, cost_unit, 
-                            cost_unit_price, work_hours, start_date, subcontractor_id, site_contact, sales_contact, drawing_pdf)
-                            VALUES (@RequestId, @EstimateId, @ItemName, @CostQuantity, @CostUnit, @CostUnitPrice, 
-                            @WorkHours, @StartDate, @SubcontractorId, @SiteContact, @SalesContact, @DrawingPDF)";
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@RequestId", constructionRequest.RequestId);
-                    command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
-                    command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
-                    command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
-                    command.Parameters.AddWithValue("@CostUnit", constructionRequest.CostUnit);
-                    command.Parameters.AddWithValue("@CostUnitPrice", constructionRequest.CostUnitPrice);
-                    command.Parameters.AddWithValue("@WorkHours", constructionRequest.WorkHours);
-                    command.Parameters.AddWithValue("@StartDate", constructionRequest.StartDate);
-                    command.Parameters.AddWithValue("@SubcontractorId", constructionRequest.SubcontractorId);
-                    command.Parameters.AddWithValue("@SiteContact", constructionRequest.SiteContact);
-                    command.Parameters.AddWithValue("@SalesContact", constructionRequest.SalesContact);
-                    command.Parameters.AddWithValue("@DrawingPDF", constructionRequest.DrawingPDF);
-
-                    command.ExecuteNonQuery();
-                }
+                command.ExecuteNonQuery();
             }
         }
 
-        // Implement other CRUD operations as needed: Read, Update, Delete
-        public void InsertConstructionRequest(ConstructionRequest constructionRequest)
+        public ConstructionRequest GetConstructionRequest(int requestId)
         {
-            using (var connection = new SQLiteConnection(connectionString))
+            string selectQuery = "SELECT * FROM ConstructionRequest WHERE request_id = @RequestId;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (SQLiteCommand command = new SQLiteCommand(selectQuery, connection))
             {
+                command.Parameters.AddWithValue("@RequestId", requestId);
+
                 connection.Open();
-
-                using (var command = connection.CreateCommand())
+                using (SQLiteDataReader reader = command.ExecuteReader())
                 {
-                    command.CommandText = @"INSERT INTO ConstructionRequest (estimate_id, item_name, cost_quantity, cost_unit, cost_unit_price, work_hours, start_date, subcontractor_id, site_contact, sales_contact, drawing_pdf)
-                                        VALUES (@EstimateId, @ItemName, @CostQuantity, @CostUnit, @CostUnitPrice, @WorkHours, @StartDate, @SubcontractorId, @SiteContact, @SalesContact, @DrawingPDF)";
-                    command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
-                    command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
-                    command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
-                    command.Parameters.AddWithValue("@CostUnit", constructionRequest.CostUnit);
-                    command.Parameters.AddWithValue("@CostUnitPrice", constructionRequest.CostUnitPrice);
-                    command.Parameters.AddWithValue("@WorkHours", constructionRequest.WorkHours);
-                    command.Parameters.AddWithValue("@StartDate", constructionRequest.StartDate);
-                    command.Parameters.AddWithValue("@SubcontractorId", constructionRequest.SubcontractorId);
-                    command.Parameters.AddWithValue("@SiteContact", constructionRequest.SiteContact);
-                    command.Parameters.AddWithValue("@SalesContact", constructionRequest.SalesContact);
-                    command.Parameters.AddWithValue("@DrawingPDF", constructionRequest.DrawingPDF);
-
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public ConstructionRequest GetConstructionRequestById(int constructionRequestId)
-        {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = "SELECT * FROM ConstructionRequest WHERE request_id = @ConstructionRequestId";
-                    command.Parameters.AddWithValue("@ConstructionRequestId", constructionRequestId);
-
-                    using (var reader = command.ExecuteReader())
+                    if (reader.Read())
                     {
-                        if (reader.Read())
+                        return new ConstructionRequest
                         {
-                            return new ConstructionRequest
-                            {
-                                RequestId = reader.GetInt32(0),
-                                EstimateId = reader.GetString(1),
-                                ItemName = reader.GetString(2),
-                                CostQuantity = reader.GetDouble(3),
-                                CostUnit = reader.GetString(4),
-                                CostUnitPrice = reader.GetDouble(5),
-                                WorkHours = reader.GetDouble(6),
-                                StartDate = reader.GetDateTime(7),
-                                SubcontractorId = reader.GetInt32(8),
-                                SiteContact = reader.GetString(9),
-                                SalesContact = reader.GetString(10),
-                                DrawingPDF = (byte[])reader.GetValue(11)
-                            };
-                        }
+                            RequestId = Convert.ToInt32(reader["request_id"]),
+                            EstimateId = Convert.ToString(reader["estimate_id"]),
+                            ItemName = Convert.ToString(reader["item_name"]),
+                            CostQuantity = Convert.ToDouble(reader["cost_quantity"]),
+                            CostUnit = Convert.ToString(reader["cost_unit"]),
+                            CostUnitPrice = Convert.ToDouble(reader["cost_unit_price"]),
+                            WorkHours = Convert.ToDouble(reader["work_hours"]),
+                            StartDate = Convert.ToDateTime(reader["start_date"]),
+                            SubcontractorId = Convert.ToInt32(reader["subcontractor_id"]),
+                            SiteContact = Convert.ToString(reader["site_contact"]),
+                            SalesContact = Convert.ToString(reader["sales_contact"]),
+                            DrawingPDF = (byte[])reader["drawing_pdf"]
+                        };
                     }
                 }
             }
@@ -127,45 +98,55 @@ namespace HomeBase
 
         public void UpdateConstructionRequest(ConstructionRequest constructionRequest)
         {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
+            string updateQuery = @"
+            UPDATE ConstructionRequest SET
+                estimate_id = @EstimateId,
+                item_name = @ItemName,
+                cost_quantity = @CostQuantity,
+                cost_unit = @CostUnit,
+                cost_unit_price = @CostUnitPrice,
+                work_hours = @WorkHours,
+                start_date = @StartDate,
+                subcontractor_id = @SubcontractorId,
+                site_contact = @SiteContact,
+                sales_contact = @SalesContact,
+                drawing_pdf = @DrawingPdf
+            WHERE request_id = @RequestId;
+        ";
 
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = @"UPDATE ConstructionRequest SET estimate_id = @EstimateId, item_name = @ItemName, cost_quantity = @CostQuantity, cost_unit = @CostUnit,
-                                        cost_unit_price = @CostUnitPrice, work_hours = @WorkHours, start_date = @StartDate, subcontractor_id = @subcontractorId, site_contact = @SiteContact, sales_contact = @SalesContact, drawing_pdf = @DrawingPDF WHERE request_id = @RequestId";
-                    command.Parameters.AddWithValue("@RequestId", constructionRequest.RequestId);
-                    command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
-                    command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
-                    command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
-                    command.Parameters.AddWithValue("@CostUnit", constructionRequest.CostUnit);
-                    command.Parameters.AddWithValue("@CostUnitPrice", constructionRequest.CostUnitPrice);
-                    command.Parameters.AddWithValue("@WorkHours", constructionRequest.WorkHours);
-                    command.Parameters.AddWithValue("@StartDate", constructionRequest.StartDate);
-                    command.Parameters.AddWithValue("@SubcontractorId", constructionRequest.SubcontractorId);
-                    command.Parameters.AddWithValue("@SiteContact", constructionRequest.SiteContact);
-                    command.Parameters.AddWithValue("@SalesContact", constructionRequest.SalesContact);
-                    command.Parameters.AddWithValue("@DrawingPDF", constructionRequest.DrawingPDF);
-                    command.ExecuteNonQuery();
-                }
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (SQLiteCommand command = new SQLiteCommand(updateQuery, connection))
+            {
+                command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
+                command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
+                command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
+                command.Parameters.AddWithValue("@CostUnit", constructionRequest.CostUnit);
+                command.Parameters.AddWithValue("@CostUnitPrice", constructionRequest.CostUnitPrice);
+                command.Parameters.AddWithValue("@WorkHours", constructionRequest.WorkHours);
+                command.Parameters.AddWithValue("@StartDate", constructionRequest.StartDate);
+                command.Parameters.AddWithValue("@SubcontractorId", constructionRequest.SubcontractorId);
+                command.Parameters.AddWithValue("@SiteContact", constructionRequest.SiteContact);
+                command.Parameters.AddWithValue("@SalesContact", constructionRequest.SalesContact);
+                command.Parameters.AddWithValue("@DrawingPdf", constructionRequest.DrawingPDF);
+                command.Parameters.AddWithValue("@RequestId", constructionRequest.RequestId);
+
+                connection.Open();
+                command.ExecuteNonQuery();
             }
         }
-        public void DeleteConstructionRequest(int constructionRequestID)
+
+        public void DeleteConstructionRequest(int requestId)
         {
-            using (var connection = new SQLiteConnection(connectionString))
+            string deleteQuery = "DELETE FROM ConstructionRequest WHERE request_id = @RequestId;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (SQLiteCommand command = new SQLiteCommand(deleteQuery, connection))
             {
+                command.Parameters.AddWithValue("@RequestId", requestId);
+
                 connection.Open();
-
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = "DELETE FROM ConstructionRequest WHERE request_id = @ConstructionRequestID";
-                    command.Parameters.AddWithValue("@ConstructionRequestID", constructionRequestID);
-
-                    command.ExecuteNonQuery();
-                }
+                command.ExecuteNonQuery();
             }
         }
     }
-
 }

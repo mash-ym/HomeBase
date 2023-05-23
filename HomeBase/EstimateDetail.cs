@@ -9,28 +9,33 @@ namespace HomeBase
 {
     public class EstimateDetail
     {
-        public int DetailId { get; set; }        // ID (detail_id) [Primary Key]
-        public int EstimateId { get; set; }      // 見積番号 (estimate_id) [Foreign Key]
-        public string ItemName { get; set; }     // 項目名 (item_name)
-        public decimal CostQuantity { get; set; }     // 原価数量 (cost_quantity)
-        public string CostUnit { get; set; }     // 原価単位 (cost_unit)
-        public decimal CostUnitPrice { get; set; }    // 原価単価 (cost_unit_price)
-        public decimal EstimateQuantity { get; set; }   // 見積数量 (estimate_quantity)
-        public string EstimateUnit { get; set; }   // 見積単位 (estimate_unit)
-        public decimal EstimateUnitPrice { get; set; }  // 見積単価 (estimate_unit_price)
-        public string Specification { get; set; }  // 仕様 (specification)
-        public decimal MarkupRate { get; set; }    // 掛率 (markup_rate)
-        public string Remarks { get; set; }        // 備考 (remarks)
-        public decimal WorkHours { get; set; }     // 工数 (work_hours)
-        public int SubcontractorId { get; set; }   // 下請け業者ID (subcontractor_id)
-        public int GroupNumber { get; set; }       // グループ番号 (group_number)
-        public string GroupName { get; set; }      // グループ名 (group_name)
-        public string Dependency { get; set; }     // 依存関係 (dependency)
+        public int DetailId { get; set; }
+        public int EstimateId { get; set; }
+        public string ItemName { get; set; }
+        public decimal CostQuantity { get; set; }
+        public string CostUnit { get; set; }
+        public decimal CostUnitPrice { get; set; }
+        public decimal EstimateQuantity { get; set; }
+        public string EstimateUnit { get; set; }
+        public decimal EstimateUnitPrice { get; set; }
+        public string Specification { get; set; }
+        public decimal MarkupRate { get; set; }
+        public string Remarks { get; set; }
+        public decimal WorkHours { get; set; }
+        public int SubcontractorId { get; set; }
+        public int GroupNumber { get; set; }
+        public string GroupName { get; set; }
+        public string Dependency { get; set; }
 
-        public EstimateDetail(int detailId, int estimateId, string itemName, int costQuantity, string costUnit, decimal costUnitPrice,
-                          int estimateQuantity, string estimateUnit, decimal estimateUnitPrice, string specification,
-                          decimal markupRate, string remarks, decimal workHours, int subcontractorId,
-                          int groupNumber, string groupName, string dependency)
+        public EstimateDetail()
+        {
+            // デフォルトコンストラクタ
+        }
+
+        public EstimateDetail(int detailId, int estimateId, string itemName, decimal costQuantity, string costUnit, decimal costUnitPrice,
+            decimal estimateQuantity, string estimateUnit, decimal estimateUnitPrice, string specification,
+            decimal markupRate, string remarks, decimal workHours, int subcontractorId,
+            int groupNumber, string groupName, string dependency)
         {
             DetailId = detailId;
             EstimateId = estimateId;
@@ -51,6 +56,7 @@ namespace HomeBase
             Dependency = dependency;
         }
     }
+
     public class EstimateDetailRepository
     {
         private string connectionString;
@@ -60,90 +66,123 @@ namespace HomeBase
             connectionString = connection.ConnectionString;
         }
 
-        public void CreateEstimateDetail(EstimateDetail estimateDetail)
+        public void AddEstimateDetail(EstimateDetail estimateDetail)
         {
+            string insertQuery = @"
+        INSERT INTO EstimateDetail (
+            detail_id,
+            estimate_id,
+            item_name,
+            cost_quantity,
+            cost_unit,
+            cost_unit_price,
+            estimate_quantity,
+            estimate_unit,
+            estimate_unit_price,
+            specification,
+            markup_rate,
+            remarks,
+            work_hours,
+            subcontractor_id,
+            group_number,
+            group_name,
+            dependency
+        ) VALUES (
+            @DetailId,
+            @EstimateId,
+            @ItemName,
+            @CostQuantity,
+            @CostUnit,
+            @CostUnitPrice,
+            @EstimateQuantity,
+            @EstimateUnit,
+            @EstimateUnitPrice,
+            @Specification,
+            @MarkupRate,
+            @Remarks,
+            @WorkHours,
+            @SubcontractorId,
+            @GroupNumber,
+            @GroupName,
+            @Dependency
+        );
+    ";
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (SQLiteCommand command = new SQLiteCommand(insertQuery, connection))
+            {
+                command.Parameters.AddWithValue("@DetailId", estimateDetail.DetailId);
+                command.Parameters.AddWithValue("@EstimateId", estimateDetail.EstimateId);
+                command.Parameters.AddWithValue("@ItemName", estimateDetail.ItemName);
+                command.Parameters.AddWithValue("@CostQuantity", estimateDetail.CostQuantity);
+                command.Parameters.AddWithValue("@CostUnit", estimateDetail.CostUnit);
+                command.Parameters.AddWithValue("@CostUnitPrice", estimateDetail.CostUnitPrice);
+                command.Parameters.AddWithValue("@EstimateQuantity", estimateDetail.EstimateQuantity);
+                command.Parameters.AddWithValue("@EstimateUnit", estimateDetail.EstimateUnit);
+                command.Parameters.AddWithValue("@EstimateUnitPrice", estimateDetail.EstimateUnitPrice);
+                command.Parameters.AddWithValue("@Specification", estimateDetail.Specification);
+                command.Parameters.AddWithValue("@MarkupRate", estimateDetail.MarkupRate);
+                command.Parameters.AddWithValue("@Remarks", estimateDetail.Remarks);
+                command.Parameters.AddWithValue("@WorkHours", estimateDetail.WorkHours);
+                command.Parameters.AddWithValue("@SubcontractorId", estimateDetail.SubcontractorId);
+                command.Parameters.AddWithValue("@GroupNumber", estimateDetail.GroupNumber);
+                command.Parameters.AddWithValue("@GroupName", estimateDetail.GroupName);
+                command.Parameters.AddWithValue("@Dependency", estimateDetail.Dependency);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+
+        // Implement other CRUD operations as needed: Read, Update, Delete
+        public List<EstimateDetail> GetEstimateDetailsByEstimateId(int estimateId)
+        {
+            List<EstimateDetail> estimateDetails = new List<EstimateDetail>();
+
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
 
-                string query = @"INSERT INTO EstimateDetail (detail_id, estimate_id, item_name, cost_quantity, cost_unit, 
-                            cost_unit_price, estimate_quantity, estimate_unit, estimate_unit_price, specification, 
-                            markup_rate, remarks, work_hours, subcontractor_id, group_number, group_name, dependency)
-                            VALUES (@DetailId, @EstimateId, @ItemName, @CostQuantity, @CostUnit, @CostUnitPrice, 
-                            @EstimateQuantity, @EstimateUnit, @EstimateUnitPrice, @Specification, @MarkupRate, 
-                            @Remarks, @WorkHours, @SubcontractorId, @GroupNumber, @GroupName, @Dependency)";
-
+                string query = "SELECT * FROM EstimateDetail WHERE estimate_id = @estimateId";
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@DetailId", estimateDetail.DetailId);
-                    command.Parameters.AddWithValue("@EstimateId", estimateDetail.EstimateId);
-                    command.Parameters.AddWithValue("@ItemName", estimateDetail.ItemName);
-                    command.Parameters.AddWithValue("@CostQuantity", estimateDetail.CostQuantity);
-                    command.Parameters.AddWithValue("@CostUnit", estimateDetail.CostUnit);
-                    command.Parameters.AddWithValue("@CostUnitPrice", estimateDetail.CostUnitPrice);
-                    command.Parameters.AddWithValue("@EstimateQuantity", estimateDetail.EstimateQuantity);
-                    command.Parameters.AddWithValue("@EstimateUnit", estimateDetail.EstimateUnit);
-                    command.Parameters.AddWithValue("@EstimateUnitPrice", estimateDetail.EstimateUnitPrice);
-                    command.Parameters.AddWithValue("@Specification", estimateDetail.Specification);
-                    command.Parameters.AddWithValue("@MarkupRate", estimateDetail.MarkupRate);
-                    command.Parameters.AddWithValue("@Remarks", estimateDetail.Remarks);
-                    command.Parameters.AddWithValue("@WorkHours", estimateDetail.WorkHours);
-                    command.Parameters.AddWithValue("@SubcontractorId", estimateDetail.SubcontractorId);
-                    command.Parameters.AddWithValue("@GroupNumber", estimateDetail.GroupNumber);
-                    command.Parameters.AddWithValue("@GroupName", estimateDetail.GroupName);
-                    command.Parameters.AddWithValue("@Dependency", estimateDetail.Dependency);
+                    command.Parameters.AddWithValue("@estimateId", estimateId);
 
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        // Implement other CRUD operations as needed: Read, Update, Delete
-        public List<EstimateDetail> GetEstimateDetailsByEstimateID(int estimateID)
-        {
-            var estimateDetails = new List<EstimateDetail>();
-
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "SELECT * FROM estimation_detail WHERE estimate_id = @estimate_id";
-                    command.Parameters.AddWithValue("@estimate_id", estimateID);
-
-                    using (var reader = command.ExecuteReader())
+                    using (SQLiteDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            var detailID = reader.GetInt32(0);
-                            var itemName = reader.GetString(2);
-                            var costQuantity = reader.GetInt32(3);
-                            var costUnit = reader.GetString(4);
-                            var costUnitPrice = reader.GetDecimal(5);
-                            var estimateQuantity = reader.GetInt32(6);
-                            var estimateUnit = reader.GetString(7);
-                            var estimateUnitPrice = reader.GetDecimal(8);
-                            var specification = reader.GetString(9);
-                            var markupRate = reader.GetDecimal(10);
-                            var remarks = reader.GetString(11);
-                            var workHours = reader.GetDecimal(12);
-                            var subcontractorID = reader.GetInt32(13);
-                            var groupNumber = reader.GetInt32(14);
-                            var groupName = reader.GetString(15);
-                            var dependency = reader.GetString(16);
-                            var estimateDetail = new EstimateDetail(detailID, estimateID, itemName, costQuantity, costUnit, costUnitPrice,
-                        estimateQuantity, estimateUnit, estimateUnitPrice, specification, markupRate, remarks, workHours,
-                        subcontractorID, groupNumber, groupName, dependency);
+                            EstimateDetail estimateDetail = new EstimateDetail();
+                            estimateDetail.DetailId = reader.GetInt32(reader.GetOrdinal("detail_id"));
+                            estimateDetail.EstimateId = reader.GetInt32(reader.GetOrdinal("estimate_id"));
+                            estimateDetail.ItemName = reader.GetString(reader.GetOrdinal("item_name"));
+                            estimateDetail.CostQuantity = reader.GetDecimal(reader.GetOrdinal("cost_quantity"));
+                            estimateDetail.CostUnit = reader.GetString(reader.GetOrdinal("cost_unit"));
+                            estimateDetail.CostUnitPrice = reader.GetDecimal(reader.GetOrdinal("cost_unit_price"));
+                            estimateDetail.EstimateQuantity = reader.GetDecimal(reader.GetOrdinal("estimate_quantity"));
+                            estimateDetail.EstimateUnit = reader.GetString(reader.GetOrdinal("estimate_unit"));
+                            estimateDetail.EstimateUnitPrice = reader.GetDecimal(reader.GetOrdinal("estimate_unit_price"));
+                            estimateDetail.Specification = reader.GetString(reader.GetOrdinal("specification"));
+                            estimateDetail.MarkupRate = reader.GetDecimal(reader.GetOrdinal("markup_rate"));
+                            estimateDetail.Remarks = reader.GetString(reader.GetOrdinal("remarks"));
+                            estimateDetail.WorkHours = reader.GetDecimal(reader.GetOrdinal("work_hours"));
+                            estimateDetail.SubcontractorId = reader.GetInt32(reader.GetOrdinal("subcontractor_id"));
+                            estimateDetail.GroupNumber = reader.GetInt32(reader.GetOrdinal("group_number"));
+                            estimateDetail.GroupName = reader.GetString(reader.GetOrdinal("group_name"));
+                            estimateDetail.Dependency = reader.GetString(reader.GetOrdinal("dependency"));
 
                             estimateDetails.Add(estimateDetail);
                         }
                     }
                 }
+
+                connection.Close();
             }
 
             return estimateDetails;
         }
+
 
         public void UpdateEstimateDetail(EstimateDetail estimateDetail)
         {
@@ -182,19 +221,17 @@ namespace HomeBase
             }
         }
 
-        public void DeleteEstimateDetail(int detailID)
+        public void DeleteEstimateDetail(int detailId)
         {
-            using (var connection = new SQLiteConnection(connectionString))
+            string deleteQuery = "DELETE FROM EstimateDetail WHERE detail_id = @DetailId;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (SQLiteCommand command = new SQLiteCommand(deleteQuery, connection))
             {
+                command.Parameters.AddWithValue("@DetailId", detailId);
+
                 connection.Open();
-
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "DELETE FROM estimation_detail WHERE detail_id = @detail_id";
-                    command.Parameters.AddWithValue("@detail_id", detailID);
-
-                    command.ExecuteNonQuery();
-                }
+                command.ExecuteNonQuery();
             }
         }
     }
