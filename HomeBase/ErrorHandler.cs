@@ -30,7 +30,7 @@ namespace HomeBase
         }
 
 
-        public static void ShowErrorMessage(string errorMessage)
+        public static void ShowErrorMessage(string errorMessage, Exception ex)
         {
             // エラーメッセージをユーザーに表示します
             Console.WriteLine($"Error: {errorMessage}");
@@ -55,7 +55,7 @@ namespace HomeBase
 
             // エラーメッセージの表示
             string errorMessage = "データベース操作中にエラーが発生しました。";
-            ShowErrorMessage(errorMessage);
+            errorMessage += ex.Message;
 
             // エラーログの記録
             LogError(ex);

@@ -19,83 +19,198 @@ namespace HomeBase
 
     public class RequestInfoRepository
     {
-        private string connectionString;
+        private readonly DBManager _dbManager;
+        private readonly ErrorHandler _errorHandler;
 
-        public RequestInfoRepository(SQLiteConnection connection)
+        public RequestInfoRepository(DBManager dbManager, ErrorHandler errorHandler)
         {
-            connectionString = connection.ConnectionString;
+            _dbManager = dbManager;
+            _errorHandler = errorHandler;
         }
 
-        public void AddRequestInfo(RequestInfo requestInfo)
+        public void InsertRequestInfo(RequestInfo requestInfo)
         {
-            string insertQuery = @"
-            INSERT INTO RequestInfo (customer_id, referrer_id, building_info_id, request_content, estimate_deadline, on_site_survey, photo_data)
-            VALUES (@CustomerId, @ReferrerId, @BuildingInfoId, @RequestContent, @EstimateDeadline, @OnSiteSurvey, @PhotoData);
-            ";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(insertQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@CustomerId", requestInfo.CustomerId);
-                command.Parameters.AddWithValue("@ReferrerId", requestInfo.ReferrerId);
-                command.Parameters.AddWithValue("@BuildingInfoId", requestInfo.BuildingInfoId);
-                command.Parameters.AddWithValue("@RequestContent", requestInfo.RequestContent);
-                command.Parameters.AddWithValue("@EstimateDeadline", requestInfo.EstimateDeadline);
-                command.Parameters.AddWithValue("@OnSiteSurvey", requestInfo.OnSiteSurvey);
-                command.Parameters.AddWithValue("@PhotoData", requestInfo.PhotoData);
+                try
+                {
+                    command.CommandText = "INSERT INTO RequestInfo (customer_id, referrer_id, building_info_id, request_content, " +
+                                          "estimate_deadline, on_site_survey, photo_data) " +
+                                          "VALUES (@CustomerId, @ReferrerId, @BuildingInfoId, @RequestContent, " +
+                                          "@EstimateDeadline, @OnSiteSurvey, @PhotoData)";
+                    command.Parameters.AddWithValue("@CustomerId", requestInfo.CustomerId);
+                    command.Parameters.AddWithValue("@ReferrerId", requestInfo.ReferrerId);
+                    command.Parameters.AddWithValue("@BuildingInfoId", requestInfo.BuildingInfoId);
+                    command.Parameters.AddWithValue("@RequestContent", requestInfo.RequestContent);
+                    command.Parameters.AddWithValue("@EstimateDeadline", requestInfo.EstimateDeadline);
+                    command.Parameters.AddWithValue("@OnSiteSurvey", requestInfo.OnSiteSurvey);
+                    command.Parameters.AddWithValue("@PhotoData", requestInfo.PhotoData);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの挿入エラー", ex);
+                }
             }
         }
-
-        public List<RequestInfo> GetRequestInfos()
+        public void UpdateRequestInfo(RequestInfo requestInfo)
         {
-            List<RequestInfo> requestInfos = new List<RequestInfo>();
-
-            string selectQuery = "SELECT * FROM RequestInfo;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(selectQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                connection.Open();
-
-                SQLiteDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
+                try
                 {
-                    RequestInfo requestInfo = new RequestInfo
-                    {
-                        Id = Convert.ToInt32(reader["id"]),
-                        CustomerId = Convert.ToInt32(reader["customer_id"]),
-                        ReferrerId = Convert.ToInt32(reader["referrer_id"]),
-                        BuildingInfoId = Convert.ToInt32(reader["building_info_id"]),
-                        RequestContent = reader["request_content"].ToString(),
-                        EstimateDeadline = Convert.ToDateTime(reader["estimate_deadline"]),
-                        OnSiteSurvey = Convert.ToBoolean(reader["on_site_survey"]),
-                        PhotoData = (byte[])reader["photo_data"]
-                    };
+                    command.CommandText = "UPDATE RequestInfo SET customer_id = @CustomerId, " +
+                                          "referrer_id = @ReferrerId, building_info_id = @BuildingInfoId, " +
+                                          "request_content = @RequestContent, estimate_deadline = @EstimateDeadline, " +
+                                          "on_site_survey = @OnSiteSurvey, photo_data = @PhotoData " +
+                                          "WHERE id = @Id";
+                    command.Parameters.AddWithValue("@CustomerId", requestInfo.CustomerId);
+                    command.Parameters.AddWithValue("@ReferrerId", requestInfo.ReferrerId);
+                    command.Parameters.AddWithValue("@BuildingInfoId", requestInfo.BuildingInfoId);
+                    command.Parameters.AddWithValue("@RequestContent", requestInfo.RequestContent);
+                    command.Parameters.AddWithValue("@EstimateDeadline", requestInfo.EstimateDeadline);
+                    command.Parameters.AddWithValue("@OnSiteSurvey", requestInfo.OnSiteSurvey);
+                    command.Parameters.AddWithValue("@PhotoData", requestInfo.PhotoData);
+                    command.Parameters.AddWithValue("@Id", requestInfo.Id);
 
-                    requestInfos.Add(requestInfo);
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの更新エラー", ex);
+                }
+            }
+        }
+        public RequestInfo GetRequestInfoById(int id)
+        {
+            RequestInfo requestInfo = null;
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM RequestInfo WHERE Id = @Id";
+                command.Parameters.AddWithValue("@Id", id);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        requestInfo = new RequestInfo
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            CustomerId = Convert.ToInt32(reader["CustomerId"]),
+                            ReferrerId = Convert.ToInt32(reader["ReferrerId"]),
+                            BuildingInfoId = Convert.ToInt32(reader["BuildingInfoId"]),
+                            RequestContent = Convert.ToString(reader["RequestContent"]),
+                            EstimateDeadline = Convert.ToDateTime(reader["EstimateDeadline"]),
+                            OnSiteSurvey = Convert.ToBoolean(reader["OnSiteSurvey"]),
+                            PhotoData = (byte[])reader["PhotoData"]
+                        };
+                    }
                 }
             }
 
-            return requestInfos;
+            return requestInfo;
         }
+        public List<RequestInfo> GetAllRequestInfo()
+        {
+            List<RequestInfo> requestInfoList = new List<RequestInfo>();
 
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM RequestInfo";
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        RequestInfo requestInfo = new RequestInfo
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            CustomerId = Convert.ToInt32(reader["CustomerId"]),
+                            ReferrerId = Convert.ToInt32(reader["ReferrerId"]),
+                            BuildingInfoId = Convert.ToInt32(reader["BuildingInfoId"]),
+                            RequestContent = Convert.ToString(reader["RequestContent"]),
+                            EstimateDeadline = Convert.ToDateTime(reader["EstimateDeadline"]),
+                            OnSiteSurvey = Convert.ToBoolean(reader["OnSiteSurvey"]),
+                            PhotoData = (byte[])reader["PhotoData"]
+                        };
+
+                        requestInfoList.Add(requestInfo);
+                    }
+                }
+            }
+
+            return requestInfoList;
+        }
+        public List<RequestInfo> SearchRequestInfo(string keyword)
+        {
+            List<RequestInfo> results = new List<RequestInfo>();
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM RequestInfo WHERE RequestContent LIKE @Keyword";
+                command.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        RequestInfo requestInfo = new RequestInfo
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            CustomerId = Convert.ToInt32(reader["CustomerId"]),
+                            ReferrerId = Convert.ToInt32(reader["ReferrerId"]),
+                            BuildingInfoId = Convert.ToInt32(reader["BuildingInfoId"]),
+                            RequestContent = Convert.ToString(reader["RequestContent"]),
+                            EstimateDeadline = Convert.ToDateTime(reader["EstimateDeadline"]),
+                            OnSiteSurvey = Convert.ToBoolean(reader["OnSiteSurvey"]),
+                            PhotoData = (byte[])reader["PhotoData"]
+                        };
+
+                        results.Add(requestInfo);
+                    }
+                }
+            }
+
+            return results;
+        }
         public void DeleteRequestInfo(int id)
         {
-            string deleteQuery = "DELETE FROM RequestInfo WHERE id = @Id;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(deleteQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@Id", id);
+                try
+                {
+                    command.CommandText = "DELETE FROM RequestInfo WHERE id = @Id";
+                    command.Parameters.AddWithValue("@Id", id);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの削除エラー", ex);
+                }
             }
         }
+
     }
 
 }

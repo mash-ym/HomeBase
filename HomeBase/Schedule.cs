@@ -18,82 +18,197 @@ namespace HomeBase
 
     public class ScheduleRepository
     {
-        private string connectionString;
+        private readonly DBManager _dbManager;
+        private readonly ErrorHandler _errorHandler;
 
-        public ScheduleRepository(SQLiteConnection connection)
+        public ScheduleRepository(DBManager dbManager, ErrorHandler errorHandler)
         {
-            connectionString = connection.ConnectionString;
+            _dbManager = dbManager;
+            _errorHandler = errorHandler;
         }
 
-        public void AddSchedule(Schedule schedule)
+        public void InsertSchedule(Schedule schedule)
         {
-            string insertQuery = @"
-            INSERT INTO Schedule (site_name, site_duration, group_name, start_date, end_date, work_hours, subcontractor_id)
-            VALUES (@SiteName, @SiteDuration, @GroupName, @StartDate, @EndDate, @WorkHours, @SubcontractorId);
-            ";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(insertQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@SiteName", schedule.SiteName);
-                command.Parameters.AddWithValue("@SiteDuration", schedule.SiteDuration);
-                command.Parameters.AddWithValue("@GroupName", schedule.GroupName);
-                command.Parameters.AddWithValue("@StartDate", schedule.StartDate);
-                command.Parameters.AddWithValue("@EndDate", schedule.EndDate);
-                command.Parameters.AddWithValue("@WorkHours", schedule.WorkHours);
-                command.Parameters.AddWithValue("@SubcontractorId", schedule.SubcontractorId);
+                try
+                {
+                    command.CommandText = "INSERT INTO Schedule (SiteName, SiteDuration, GroupName, StartDate, EndDate, WorkHours, SubcontractorId)" +
+                                          "VALUES (@SiteName, @SiteDuration, @GroupName, @StartDate, @EndDate, @WorkHours, @SubcontractorId)";
+                    command.Parameters.AddWithValue("@SiteName", schedule.SiteName);
+                    command.Parameters.AddWithValue("@SiteDuration", schedule.SiteDuration);
+                    command.Parameters.AddWithValue("@GroupName", schedule.GroupName);
+                    command.Parameters.AddWithValue("@StartDate", schedule.StartDate);
+                    command.Parameters.AddWithValue("@EndDate", schedule.EndDate);
+                    command.Parameters.AddWithValue("@WorkHours", schedule.WorkHours);
+                    command.Parameters.AddWithValue("@SubcontractorId", schedule.SubcontractorId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの挿入エラー", ex);
+                }
             }
         }
 
-        public List<Schedule> GetSchedules()
+        public void UpdateSchedule(Schedule schedule)
+        {
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    command.CommandText = "UPDATE Schedule SET SiteName = @SiteName, SiteDuration = @SiteDuration, GroupName = @GroupName, " +
+                                          "StartDate = @StartDate, EndDate = @EndDate, WorkHours = @WorkHours, SubcontractorId = @SubcontractorId " +
+                                          "WHERE Id = @Id";
+                    command.Parameters.AddWithValue("@SiteName", schedule.SiteName);
+                    command.Parameters.AddWithValue("@SiteDuration", schedule.SiteDuration);
+                    command.Parameters.AddWithValue("@GroupName", schedule.GroupName);
+                    command.Parameters.AddWithValue("@StartDate", schedule.StartDate);
+                    command.Parameters.AddWithValue("@EndDate", schedule.EndDate);
+                    command.Parameters.AddWithValue("@WorkHours", schedule.WorkHours);
+                    command.Parameters.AddWithValue("@SubcontractorId", schedule.SubcontractorId);
+                    command.Parameters.AddWithValue("@Id", schedule.Id);
+
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの更新エラー", ex);
+                }
+            }
+        }
+
+        public void DeleteSchedule(int scheduleId)
+        {
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    command.CommandText = "DELETE FROM Schedule WHERE Id = @Id";
+                    command.Parameters.AddWithValue("@Id", scheduleId);
+
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの削除エラー", ex);
+                }
+            }
+        }
+
+        public List<Schedule> GetAllSchedules()
         {
             List<Schedule> schedules = new List<Schedule>();
 
-            string selectQuery = "SELECT * FROM Schedule;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(selectQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                connection.Open();
+                command.CommandText = "SELECT * FROM Schedule";
 
-                SQLiteDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
+                using (SQLiteDataReader reader = command.ExecuteReader())
                 {
-                    Schedule schedule = new Schedule
+                    while (reader.Read())
                     {
-                        Id = Convert.ToInt32(reader["id"]),
-                        SiteName = reader["site_name"].ToString(),
-                        SiteDuration = reader["site_duration"].ToString(),
-                        GroupName = reader["group_name"].ToString(),
-                        StartDate = Convert.ToDateTime(reader["start_date"]),
-                        EndDate = Convert.ToDateTime(reader["end_date"]),
-                        WorkHours = Convert.ToDecimal(reader["work_hours"]),
-                        SubcontractorId = Convert.ToInt32(reader["subcontractor_id"])
-                    };
+                        Schedule schedule = new Schedule
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            SiteName = Convert.ToString(reader["SiteName"]),
+                            SiteDuration = Convert.ToString(reader["SiteDuration"]),
+                            GroupName = Convert.ToString(reader["GroupName"]),
+                            StartDate = Convert.ToDateTime(reader["StartDate"]),
+                            EndDate = Convert.ToDateTime(reader["EndDate"]),
+                            WorkHours = Convert.ToDecimal(reader["WorkHours"]),
+                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"])
+                        };
 
-                    schedules.Add(schedule);
+                        schedules.Add(schedule);
+                    }
                 }
             }
 
             return schedules;
         }
 
-        public void DeleteSchedule(int id)
+        public Schedule GetScheduleById(int scheduleId)
         {
-            string deleteQuery = "DELETE FROM Schedule WHERE id = @Id;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(deleteQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.Parameters.AddWithValue("@Id", id);
+                command.CommandText = "SELECT * FROM Schedule WHERE Id = @Id";
+                command.Parameters.AddWithValue("@Id", scheduleId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        Schedule schedule = new Schedule
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            SiteName = Convert.ToString(reader["SiteName"]),
+                            SiteDuration = Convert.ToString(reader["SiteDuration"]),
+                            GroupName = Convert.ToString(reader["GroupName"]),
+                            StartDate = Convert.ToDateTime(reader["StartDate"]),
+                            EndDate = Convert.ToDateTime(reader["EndDate"]),
+                            WorkHours = Convert.ToDecimal(reader["WorkHours"]),
+                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"])
+                        };
+
+                        return schedule;
+                    }
+                }
             }
+
+            return null;
+        }
+
+        public List<Schedule> SearchSchedules(string keyword)
+        {
+            List<Schedule> schedules = new List<Schedule>();
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Schedule WHERE SiteName LIKE @Keyword OR GroupName LIKE @Keyword";
+                command.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Schedule schedule = new Schedule
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            SiteName = Convert.ToString(reader["SiteName"]),
+                            SiteDuration = Convert.ToString(reader["SiteDuration"]),
+                            GroupName = Convert.ToString(reader["GroupName"]),
+                            StartDate = Convert.ToDateTime(reader["StartDate"]),
+                            EndDate = Convert.ToDateTime(reader["EndDate"]),
+                            WorkHours = Convert.ToDecimal(reader["WorkHours"]),
+                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"])
+                        };
+
+                        schedules.Add(schedule);
+                    }
+                }
+            }
+
+            return schedules;
         }
     }
 

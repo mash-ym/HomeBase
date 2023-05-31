@@ -19,143 +19,212 @@ namespace HomeBase
 
     public class BuildingInfoRepository
     {
-        private string connectionString;
+        private readonly DBManager _dbManager;
+        private readonly ErrorHandler _errorHandler;
 
-        public BuildingInfoRepository(SQLiteConnection connection)
+        public BuildingInfoRepository(DBManager dbManager, ErrorHandler errorHandler)
         {
-            connectionString = connection.ConnectionString;
+            _dbManager = dbManager;
+            _errorHandler = errorHandler;
         }
 
-        public void AddBuildingInfo(BuildingInfo buildingInfo)
+        public void InsertBuildingInfo(BuildingInfo buildingInfo)
         {
-            string insertQuery = @"
-            INSERT INTO BuildingInfo (building_name, room_number, structure, address, area, project_history, drawing_pdf)
-            VALUES (@BuildingName, @RoomNumber, @Structure, @Address, @Area, @ProjectHistory, @DrawingPdf);
-        ";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(insertQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@BuildingName", buildingInfo.BuildingName);
-                command.Parameters.AddWithValue("@RoomNumber", buildingInfo.RoomNumber);
-                command.Parameters.AddWithValue("@Structure", buildingInfo.Structure);
-                command.Parameters.AddWithValue("@Address", buildingInfo.Address);
-                command.Parameters.AddWithValue("@Area", buildingInfo.Area);
-                command.Parameters.AddWithValue("@ProjectHistory", buildingInfo.ProjectHistory);
-                command.Parameters.AddWithValue("@DrawingPdf", buildingInfo.DrawingPdf);
+                try
+                {
+                    command.CommandText = "INSERT INTO BuildingInfo (BuildingName, RoomNumber, Structure, Address, Area, ProjectHistory, DrawingPdf) " +
+                                          "VALUES (@BuildingName, @RoomNumber, @Structure, @Address, @Area, @ProjectHistory, @DrawingPdf)";
+                    command.Parameters.AddWithValue("@BuildingName", buildingInfo.BuildingName);
+                    command.Parameters.AddWithValue("@RoomNumber", buildingInfo.RoomNumber);
+                    command.Parameters.AddWithValue("@Structure", buildingInfo.Structure);
+                    command.Parameters.AddWithValue("@Address", buildingInfo.Address);
+                    command.Parameters.AddWithValue("@Area", buildingInfo.Area);
+                    command.Parameters.AddWithValue("@ProjectHistory", buildingInfo.ProjectHistory);
+                    command.Parameters.AddWithValue("@DrawingPdf", buildingInfo.DrawingPdf);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの挿入エラー", ex);
+                }
             }
         }
-
         public List<BuildingInfo> GetAllBuildingInfo()
         {
-            string selectQuery = "SELECT * FROM BuildingInfo;";
+            List<BuildingInfo> buildingInfoList = new List<BuildingInfo>();
 
-            List<BuildingInfo> buildingInfos = new List<BuildingInfo>();
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(selectQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                connection.Open();
-
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                try
                 {
-                    while (reader.Read())
-                    {
-                        BuildingInfo buildingInfo = new BuildingInfo()
-                        {
-                            Id = Convert.ToInt32(reader["building_info_id"]),
-                            BuildingName = Convert.ToString(reader["building_name"]),
-                            RoomNumber = Convert.ToString(reader["room_number"]),
-                            Structure = Convert.ToString(reader["structure"]),
-                            Address = Convert.ToString(reader["address"]),
-                            Area = Convert.ToDouble(reader["area"]),
-                            ProjectHistory = Convert.ToString(reader["project_history"]),
-                            DrawingPdf = (byte[])reader["drawing_pdf"]
-                        };
+                    command.CommandText = "SELECT * FROM BuildingInfo";
 
-                        buildingInfos.Add(buildingInfo);
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            BuildingInfo buildingInfo = new BuildingInfo
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                BuildingName = Convert.ToString(reader["BuildingName"]),
+                                RoomNumber = Convert.ToString(reader["RoomNumber"]),
+                                Structure = Convert.ToString(reader["Structure"]),
+                                Address = Convert.ToString(reader["Address"]),
+                                Area = Convert.ToDouble(reader["Area"]),
+                                ProjectHistory = Convert.ToString(reader["ProjectHistory"]),
+                                DrawingPdf = (byte[])reader["DrawingPdf"]
+                            };
+
+                            buildingInfoList.Add(buildingInfo);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("データ読込エラー", ex);
                 }
             }
 
-            return buildingInfos;
+            return buildingInfoList;
         }
-
         public BuildingInfo GetBuildingInfoById(int buildingId)
         {
-            string selectQuery = "SELECT * FROM BuildingInfo WHERE building_info_id = @BuildingId;";
             BuildingInfo buildingInfo = null;
 
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(selectQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.Parameters.AddWithValue("@BuildingId", buildingId);
-
-                connection.Open();
-
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                try
                 {
-                    if (reader.Read())
+                    command.CommandText = "SELECT * FROM BuildingInfo WHERE Id = @BuildingId";
+                    command.Parameters.AddWithValue("@BuildingId", buildingId);
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
                     {
-                        buildingInfo = new BuildingInfo()
+                        if (reader.Read())
                         {
-                            Id = Convert.ToInt32(reader["building_info_id"]),
-                            BuildingName = Convert.ToString(reader["building_name"]),
-                            RoomNumber = Convert.ToString(reader["room_number"]),
-                            Structure = Convert.ToString(reader["structure"]),
-                            Address = Convert.ToString(reader["address"]),
-                            Area = Convert.ToDouble(reader["area"]),
-                            ProjectHistory = Convert.ToString(reader["project_history"]),
-                            DrawingPdf = (byte[])reader["drawing_pdf"]
-                        };
+                            buildingInfo = new BuildingInfo
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                BuildingName = Convert.ToString(reader["BuildingName"]),
+                                RoomNumber = Convert.ToString(reader["RoomNumber"]),
+                                Structure = Convert.ToString(reader["Structure"]),
+                                Address = Convert.ToString(reader["Address"]),
+                                Area = Convert.ToDouble(reader["Area"]),
+                                ProjectHistory = Convert.ToString(reader["ProjectHistory"]),
+                                DrawingPdf = (byte[])reader["DrawingPdf"]
+                            };
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("データエラー", ex);
                 }
             }
 
             return buildingInfo;
         }
-
         public void UpdateBuildingInfo(BuildingInfo buildingInfo)
         {
-            string updateQuery = @"
-            UPDATE BuildingInfo
-            SET building_name = @BuildingName, room_number = @RoomNumber, structure = @Structure,
-                address = @Address, area = @Area, project_history = @ProjectHistory, drawing_pdf = @DrawingPdf
-                        WHERE building_info_id = @BuildingId;
-        ";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(updateQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.Parameters.AddWithValue("@BuildingName", buildingInfo.BuildingName);
-                command.Parameters.AddWithValue("@RoomNumber", buildingInfo.RoomNumber);
-                command.Parameters.AddWithValue("@Structure", buildingInfo.Structure);
-                command.Parameters.AddWithValue("@Address", buildingInfo.Address);
-                command.Parameters.AddWithValue("@Area", buildingInfo.Area);
-                command.Parameters.AddWithValue("@ProjectHistory", buildingInfo.ProjectHistory);
-                command.Parameters.AddWithValue("@DrawingPdf", buildingInfo.DrawingPdf);
-                command.Parameters.AddWithValue("@BuildingId", buildingInfo.Id);
+                try
+                {
+                    command.CommandText = @"UPDATE BuildingInfo SET
+                                    BuildingName = @BuildingName,
+                                    RoomNumber = @RoomNumber,
+                                    Structure = @Structure,
+                                    Address = @Address,
+                                    Area = @Area,
+                                    ProjectHistory = @ProjectHistory,
+                                    DrawingPdf = @DrawingPdf
+                                    WHERE Id = @BuildingId";
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.Parameters.AddWithValue("@BuildingName", buildingInfo.BuildingName);
+                    command.Parameters.AddWithValue("@RoomNumber", buildingInfo.RoomNumber);
+                    command.Parameters.AddWithValue("@Structure", buildingInfo.Structure);
+                    command.Parameters.AddWithValue("@Address", buildingInfo.Address);
+                    command.Parameters.AddWithValue("@Area", buildingInfo.Area);
+                    command.Parameters.AddWithValue("@ProjectHistory", buildingInfo.ProjectHistory);
+                    command.Parameters.AddWithValue("@DrawingPdf", buildingInfo.DrawingPdf);
+                    command.Parameters.AddWithValue("@BuildingId", buildingInfo.Id);
+
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("データ上書きエラー", ex);
+                }
             }
         }
-
         public void DeleteBuildingInfo(int buildingId)
         {
-            string deleteQuery = "DELETE FROM BuildingInfo WHERE building_info_id = @BuildingId;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(deleteQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.Parameters.AddWithValue("@BuildingId", buildingId);
+                try
+                {
+                    command.CommandText = @"DELETE FROM BuildingInfo WHERE Id = @BuildingId";
+                    command.Parameters.AddWithValue("@BuildingId", buildingId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("データ削除エラー", ex);
+                }
             }
+        }
+        public List<BuildingInfo> SearchBuildingInfo(string keyword)
+        {
+            List<BuildingInfo> buildingInfos = new List<BuildingInfo>();
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                try
+                {
+                    command.CommandText = "SELECT * FROM BuildingInfo WHERE id = @Keyword OR building_name LIKE @Keyword OR room_number LIKE @Keyword OR structure LIKE @Keyword OR address LIKE @Keyword OR project_history LIKE @Keyword";
+                    command.Parameters.AddWithValue("@Keyword", $"%{keyword}%");
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            BuildingInfo buildingInfo = new BuildingInfo
+                            {
+                                Id = Convert.ToInt32(reader["id"]),
+                                BuildingName = Convert.ToString(reader["building_name"]),
+                                RoomNumber = Convert.ToString(reader["room_number"]),
+                                Structure = Convert.ToString(reader["structure"]),
+                                Address = Convert.ToString(reader["address"]),
+                                Area = Convert.ToDouble(reader["area"]),
+                                ProjectHistory = Convert.ToString(reader["project_history"]),
+                                DrawingPdf = (byte[])reader["drawing_pdf"]
+                            };
+
+                            buildingInfos.Add(buildingInfo);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("検索エラー", ex);
+                }
+            }
+
+            return buildingInfos;
         }
     }
 }

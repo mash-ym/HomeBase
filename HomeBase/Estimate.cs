@@ -24,133 +24,232 @@ namespace HomeBase
 
     public class EstimateRepository
     {
-        private string connectionString;
+        private readonly DBManager _dbManager;
+        private readonly ErrorHandler _errorHandler;
 
-        public EstimateRepository(SQLiteConnection connection)
+        public EstimateRepository(DBManager dbManager, ErrorHandler errorHandler)
         {
-            connectionString = connection.ConnectionString;
+            _dbManager = dbManager;
+            _errorHandler = errorHandler;
         }
 
-        public void AddEstimate(Estimate estimate)
+        public void InsertEstimate(Estimate estimate)
         {
-            string insertQuery = @"
-            INSERT INTO Estimate (site_name, site_address, created_at, request_info_id, customer_info_id, building_info_id, issue_date, creator_id, total_amount, due_date, change_history, delivery_location)
-            VALUES (@SiteName, @SiteAddress, @CreatedAt, @RequestInfoId, @CustomerInfoId, @BuildingInfoId, @IssueDate, @CreatorId, @TotalAmount, @DueDate, @ChangeHistory, @DeliveryLocation);
-        ";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(insertQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@SiteName", estimate.SiteName);
-                command.Parameters.AddWithValue("@SiteAddress", estimate.SiteAddress);
-                command.Parameters.AddWithValue("@CreatedAt", estimate.CreatedAt);
-                command.Parameters.AddWithValue("@RequestInfoId", estimate.RequestInfoId);
-                command.Parameters.AddWithValue("@CustomerInfoId", estimate.CustomerInfoId);
-                command.Parameters.AddWithValue("@BuildingInfoId", estimate.BuildingInfoId);
-                command.Parameters.AddWithValue("@IssueDate", estimate.IssueDate);
-                command.Parameters.AddWithValue("@CreatorId", estimate.CreatorId);
-                command.Parameters.AddWithValue("@TotalAmount", estimate.TotalAmount);
-                command.Parameters.AddWithValue("@DueDate", estimate.DueDate);
-                command.Parameters.AddWithValue("@ChangeHistory", estimate.ChangeHistory);
-                command.Parameters.AddWithValue("@DeliveryLocation", estimate.DeliveryLocation);
-
-                connection.Open();
-                command.ExecuteNonQuery();
-            }
-        }
-
-        public List<Estimate> GetAllEstimates()
-        {
-            string selectQuery = "SELECT * FROM Estimate;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(selectQuery, connection))
-            {
-                connection.Open();
-
-                List<Estimate> estimateList = new List<Estimate>();
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                try
                 {
-                    while (reader.Read())
-                    {
-                        Estimate estimate = new Estimate()
-                        {
-                            EstimateId = reader.GetInt32(0),
-                            SiteName = reader.GetString(1),
-                            SiteAddress = reader.GetString(2),
-                            CreatedAt = reader.GetDateTime(3),
-                            RequestInfoId = reader.GetInt32(4),
-                            CustomerInfoId = reader.GetInt32(5),
-                            BuildingInfoId = reader.GetInt32(6),
-                            IssueDate = reader.GetDateTime(7),
-                            CreatorId = reader.GetInt32(8),
-                            TotalAmount = reader.GetDecimal(9),
-                            DueDate = reader.GetDateTime(10),
-                            ChangeHistory = reader.GetString(11),
-                            DeliveryLocation = reader.GetString(12)
-                        };
+                    command.CommandText = "INSERT INTO Estimate (SiteName, SiteAddress, CreatedAt, RequestInfoId, CustomerInfoId, BuildingInfoId, " +
+                                          "IssueDate, CreatorId, TotalAmount, DueDate, ChangeHistory, DeliveryLocation, DrawingPdf)" +
+                                          "VALUES (@SiteName, @SiteAddress, @CreatedAt, @RequestInfoId, @CustomerInfoId, @BuildingInfoId, " +
+                                          "@IssueDate, @CreatorId, @TotalAmount, @DueDate, @ChangeHistory, @DeliveryLocation, @DrawingPdf)";
+                    command.Parameters.AddWithValue("@SiteName", estimate.SiteName);
+                    command.Parameters.AddWithValue("@SiteAddress", estimate.SiteAddress);
+                    command.Parameters.AddWithValue("@CreatedAt", estimate.CreatedAt);
+                    command.Parameters.AddWithValue("@RequestInfoId", estimate.RequestInfoId);
+                    command.Parameters.AddWithValue("@CustomerInfoId", estimate.CustomerInfoId);
+                    command.Parameters.AddWithValue("@BuildingInfoId", estimate.BuildingInfoId);
+                    command.Parameters.AddWithValue("@IssueDate", estimate.IssueDate);
+                    command.Parameters.AddWithValue("@CreatorId", estimate.CreatorId);
+                    command.Parameters.AddWithValue("@TotalAmount", estimate.TotalAmount);
+                    command.Parameters.AddWithValue("@DueDate", estimate.DueDate);
+                    command.Parameters.AddWithValue("@ChangeHistory", estimate.ChangeHistory);
+                    command.Parameters.AddWithValue("@DeliveryLocation", estimate.DeliveryLocation);
+                    command.Parameters.AddWithValue("@DrawingPdf", estimate.DrawingPdf);
 
-                        estimateList.Add(estimate);
-                    }
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
                 }
-
-                return estimateList;
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの挿入エラー", ex);
+                }
             }
         }
 
         public void UpdateEstimate(Estimate estimate)
         {
-            string updateQuery = @"
-                UPDATE Estimate SET
-                site_name = @SiteName,
-                site_address = @SiteAddress,
-                created_at = @CreatedAt,
-                request_info_id = @RequestInfoId,
-                customer_info_id = @CustomerInfoId,
-                building_info_id = @BuildingInfoId,
-                issue_date = @IssueDate,
-                creator_id = @CreatorId,
-                total_amount = @TotalAmount,
-                due_date = @DueDate,
-                change_history = @ChangeHistory,
-                delivery_location = @DeliveryLocation
-                WHERE estimate_id = @EstimateId;
-            ";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(updateQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@SiteName", estimate.SiteName);
-                command.Parameters.AddWithValue("@SiteAddress", estimate.SiteAddress);
-                command.Parameters.AddWithValue("@CreatedAt", estimate.CreatedAt);
-                command.Parameters.AddWithValue("@RequestInfoId", estimate.RequestInfoId);
-                command.Parameters.AddWithValue("@CustomerInfoId", estimate.CustomerInfoId);
-                command.Parameters.AddWithValue("@BuildingInfoId", estimate.BuildingInfoId);
-                command.Parameters.AddWithValue("@IssueDate", estimate.IssueDate);
-                command.Parameters.AddWithValue("@CreatorId", estimate.CreatorId);
-                command.Parameters.AddWithValue("@TotalAmount", estimate.TotalAmount);
-                command.Parameters.AddWithValue("@DueDate", estimate.DueDate);
-                command.Parameters.AddWithValue("@ChangeHistory", estimate.ChangeHistory);
-                command.Parameters.AddWithValue("@DeliveryLocation", estimate.DeliveryLocation);
-                command.Parameters.AddWithValue("@EstimateId", estimate.EstimateId);
+                try
+                {
+                    command.CommandText = "UPDATE Estimate SET SiteName = @SiteName, SiteAddress = @SiteAddress, " +
+                                          "CreatedAt = @CreatedAt, RequestInfoId = @RequestInfoId, CustomerInfoId = @CustomerInfoId, " +
+                                          "BuildingInfoId = @BuildingInfoId, IssueDate = @IssueDate, CreatorId = @CreatorId, " +
+                                          "TotalAmount = @TotalAmount, DueDate = @DueDate, ChangeHistory = @ChangeHistory, " +
+                                          "DeliveryLocation = @DeliveryLocation, DrawingPdf = @DrawingPdf " +
+                                          "WHERE EstimateId = @EstimateId";
+                    command.Parameters.AddWithValue("@SiteName", estimate.SiteName);
+                    command.Parameters.AddWithValue("@SiteAddress", estimate.SiteAddress);
+                    command.Parameters.AddWithValue("@CreatedAt", estimate.CreatedAt);
+                    command.Parameters.AddWithValue("@RequestInfoId", estimate.RequestInfoId);
+                    command.Parameters.AddWithValue("@CustomerInfoId", estimate.CustomerInfoId);
+                    command.Parameters.AddWithValue("@BuildingInfoId", estimate.BuildingInfoId);
+                    command.Parameters.AddWithValue("@IssueDate", estimate.IssueDate);
+                    command.Parameters.AddWithValue("@CreatorId", estimate.CreatorId);
+                    command.Parameters.AddWithValue("@TotalAmount", estimate.TotalAmount);
+                    command.Parameters.AddWithValue("@DueDate", estimate.DueDate);
+                    command.Parameters.AddWithValue("@ChangeHistory", estimate.ChangeHistory);
+                    command.Parameters.AddWithValue("@DeliveryLocation", estimate.DeliveryLocation);
+                    command.Parameters.AddWithValue("@DrawingPdf", estimate.DrawingPdf);
+                    command.Parameters.AddWithValue("@EstimateId", estimate.EstimateId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの更新エラー", ex);
+                }
             }
         }
 
         public void DeleteEstimate(int estimateId)
         {
-            string deleteQuery = "DELETE FROM Estimate WHERE estimate_id = @Id;";
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            using (SQLiteCommand command = new SQLiteCommand(deleteQuery, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@Id", estimateId);
+                try
+                {
+                    command.CommandText = "DELETE FROM Estimate WHERE EstimateId = @EstimateId";
+                    command.Parameters.AddWithValue("@EstimateId", estimateId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの削除エラー", ex);
+                }
             }
+        }
+
+        public List<Estimate> GetAllEstimates()
+        {
+            List<Estimate> estimates = new List<Estimate>();
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Estimate";
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Estimate estimate = new Estimate
+                        {
+                            EstimateId = Convert.ToInt32(reader["EstimateId"]),
+                            SiteName = Convert.ToString(reader["SiteName"]),
+                            SiteAddress = Convert.ToString(reader["SiteAddress"]),
+                            CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                            RequestInfoId = Convert.ToInt32(reader["RequestInfoId"]),
+                            CustomerInfoId = Convert.ToInt32(reader["CustomerInfoId"]),
+                            BuildingInfoId = Convert.ToInt32(reader["BuildingInfoId"]),
+                            IssueDate = Convert.ToDateTime(reader["IssueDate"]),
+                            CreatorId = Convert.ToInt32(reader["CreatorId"]),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                            DueDate = Convert.ToDateTime(reader["DueDate"]),
+                            ChangeHistory = Convert.ToString(reader["ChangeHistory"]),
+                            DeliveryLocation = Convert.ToString(reader["DeliveryLocation"]),
+                            DrawingPdf = (byte[])reader["DrawingPdf"]
+                        };
+
+                        estimates.Add(estimate);
+                    }
+                }
+            }
+
+            return estimates;
+        }
+
+        public Estimate GetEstimateById(int estimateId)
+        {
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Estimate WHERE EstimateId = @EstimateId";
+                command.Parameters.AddWithValue("@EstimateId", estimateId);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        Estimate estimate = new Estimate
+                        {
+                            EstimateId = Convert.ToInt32(reader["EstimateId"]),
+                            SiteName = Convert.ToString(reader["SiteName"]),
+                            SiteAddress = Convert.ToString(reader["SiteAddress"]),
+                            CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                            RequestInfoId = Convert.ToInt32(reader["RequestInfoId"]),
+                            CustomerInfoId = Convert.ToInt32(reader["CustomerInfoId"]),
+                            BuildingInfoId = Convert.ToInt32(reader["BuildingInfoId"]),
+                            IssueDate = Convert.ToDateTime(reader["IssueDate"]),
+                            CreatorId = Convert.ToInt32(reader["CreatorId"]),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                            DueDate = Convert.ToDateTime(reader["DueDate"]),
+                            ChangeHistory = Convert.ToString(reader["ChangeHistory"]),
+                            DeliveryLocation = Convert.ToString(reader["DeliveryLocation"]),
+                            DrawingPdf = (byte[])reader["DrawingPdf"]
+                        };
+
+                        return estimate;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public List<Estimate> SearchEstimate(string keyword)
+        {
+            List<Estimate> estimates = new List<Estimate>();
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Estimate WHERE SiteName LIKE @Keyword OR SiteAddress LIKE @Keyword";
+                command.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Estimate estimate = new Estimate
+                        {
+                            EstimateId = Convert.ToInt32(reader["EstimateId"]),
+                            SiteName = Convert.ToString(reader["SiteName"]),
+                            SiteAddress = Convert.ToString(reader["SiteAddress"]),
+                            CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                            RequestInfoId = Convert.ToInt32(reader["RequestInfoId"]),
+                            CustomerInfoId = Convert.ToInt32(reader["CustomerInfoId"]),
+                            BuildingInfoId = Convert.ToInt32(reader["BuildingInfoId"]),
+                            IssueDate = Convert.ToDateTime(reader["IssueDate"]),
+                            CreatorId = Convert.ToInt32(reader["CreatorId"]),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                            DueDate = Convert.ToDateTime(reader["DueDate"]),
+                            ChangeHistory = Convert.ToString(reader["ChangeHistory"]),
+                            DeliveryLocation = Convert.ToString(reader["DeliveryLocation"]),
+                            DrawingPdf = (byte[])reader["DrawingPdf"]
+                        };
+
+                        estimates.Add(estimate);
+                    }
+                }
+            }
+
+            return estimates;
         }
     }
 }

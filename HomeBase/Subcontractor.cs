@@ -48,105 +48,207 @@ namespace HomeBase
     public class SubcontractorRepository
     {
         private readonly DBManager _dbManager;
+        private readonly ErrorHandler _errorHandler;
 
-        public SubcontractorRepository(DBManager dbManager)
+        public SubcontractorRepository(DBManager dbManager, ErrorHandler errorHandler)
         {
             _dbManager = dbManager;
+            _errorHandler = errorHandler;
         }
-
-        public void AddSubcontractor(Subcontractor subcontractor)
+        public void InsertSubcontractor(Subcontractor subcontractor)
         {
-            string query = @"
-            INSERT INTO Subcontractor (company_name, address, occupation, phone_number, email_address, sns_info)
-            VALUES (@CompanyName, @Address, @Occupation, @PhoneNumber, @EmailAddress, @SnsInfo);
-        ";
-
-            using (var connection = _dbManager.GetConnection())
-            using (var command = new SQLiteCommand(query, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@CompanyName", subcontractor.CompanyName);
-                command.Parameters.AddWithValue("@Address", subcontractor.Address);
-                command.Parameters.AddWithValue("@Occupation", subcontractor.Occupation);
-                command.Parameters.AddWithValue("@PhoneNumber", subcontractor.PhoneNumber);
-                command.Parameters.AddWithValue("@EmailAddress", subcontractor.EmailAddress);
-                command.Parameters.AddWithValue("@SnsInfo", subcontractor.SnsInfo);
+                try
+                {
+                    command.CommandText = "INSERT INTO Subcontractor (company_name, address, occupation, phone_number, email_address, sns_info)" +
+                                          "VALUES (@CompanyName, @Address, @Occupation, @PhoneNumber, @EmailAddress, @SnsInfo)";
+                    command.Parameters.AddWithValue("@CompanyName", subcontractor.CompanyName);
+                    command.Parameters.AddWithValue("@Address", subcontractor.Address);
+                    command.Parameters.AddWithValue("@Occupation", subcontractor.Occupation);
+                    command.Parameters.AddWithValue("@PhoneNumber", subcontractor.PhoneNumber);
+                    command.Parameters.AddWithValue("@EmailAddress", subcontractor.EmailAddress);
+                    command.Parameters.AddWithValue("@SnsInfo", subcontractor.SnsInfo);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの挿入エラー", ex);
+                }
             }
         }
-
         public void UpdateSubcontractor(Subcontractor subcontractor)
         {
-            string query = @"
-            UPDATE Subcontractor
-            SET company_name = @CompanyName, address = @Address, occupation = @Occupation,
-                phone_number = @PhoneNumber, email_address = @EmailAddress, sns_info = @SnsInfo
-            WHERE subcontractor_id = @Id;
-        ";
-
-            using (var connection = _dbManager.GetConnection())
-            using (var command = new SQLiteCommand(query, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@CompanyName", subcontractor.CompanyName);
-                command.Parameters.AddWithValue("@Address", subcontractor.Address);
-                command.Parameters.AddWithValue("@Occupation", subcontractor.Occupation);
-                command.Parameters.AddWithValue("@PhoneNumber", subcontractor.PhoneNumber);
-                command.Parameters.AddWithValue("@EmailAddress", subcontractor.EmailAddress);
-                command.Parameters.AddWithValue("@SnsInfo", subcontractor.SnsInfo);
-                command.Parameters.AddWithValue("@Id", subcontractor.Id);
+                try
+                {
+                    command.CommandText = "UPDATE Subcontractor SET company_name = @CompanyName, address = @Address, " +
+                                          "occupation = @Occupation, phone_number = @PhoneNumber, email_address = @EmailAddress, " +
+                                          "sns_info = @SnsInfo WHERE id = @Id";
+                    command.Parameters.AddWithValue("@CompanyName", subcontractor.CompanyName);
+                    command.Parameters.AddWithValue("@Address", subcontractor.Address);
+                    command.Parameters.AddWithValue("@Occupation", subcontractor.Occupation);
+                    command.Parameters.AddWithValue("@PhoneNumber", subcontractor.PhoneNumber);
+                    command.Parameters.AddWithValue("@EmailAddress", subcontractor.EmailAddress);
+                    command.Parameters.AddWithValue("@SnsInfo", subcontractor.SnsInfo);
+                    command.Parameters.AddWithValue("@Id", subcontractor.Id);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの更新エラー", ex);
+                }
             }
         }
-
         public void DeleteSubcontractor(int subcontractorId)
         {
-            string query = @"
-            DELETE FROM Subcontractor WHERE subcontractor_id = @Id;
-        ";
-
-            using (var connection = _dbManager.GetConnection())
-            using (var command = new SQLiteCommand(query, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@Id", subcontractorId);
+                try
+                {
+                    command.CommandText = "DELETE FROM Subcontractor WHERE id = @Id";
+                    command.Parameters.AddWithValue("@Id", subcontractorId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ErrorHandler.ShowErrorMessage("データの削除エラー", ex);
+                }
             }
         }
-
         public List<Subcontractor> GetAllSubcontractors()
         {
             List<Subcontractor> subcontractors = new List<Subcontractor>();
 
-            string query = "SELECT * FROM Subcontractor;";
-
-            using (var connection = _dbManager.GetConnection())
-            using (var command = new SQLiteCommand(query, connection))
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                connection.Open();
-
-                using (var reader = command.ExecuteReader())
+                try
                 {
-                    while (reader.Read())
+                    command.CommandText = "SELECT * FROM Subcontractor";
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
                     {
-                        subcontractors.Add(new Subcontractor
+                        while (reader.Read())
                         {
-                            Id = Convert.ToInt32(reader["subcontractor_id"]),
-                            CompanyName = reader["company_name"].ToString(),
-                            Address = reader["address"].ToString(),
-                            Occupation = reader["occupation"].ToString(),
-                            PhoneNumber = reader["phone_number"].ToString(),
-                            EmailAddress = reader["email_address"].ToString(),
-                            SnsInfo = reader["sns_info"].ToString()
-                        });
+                            Subcontractor subcontractor = new Subcontractor
+                            {
+                                Id = Convert.ToInt32(reader["id"]),
+                                CompanyName = Convert.ToString(reader["company_name"]),
+                                Address = Convert.ToString(reader["address"]),
+                                Occupation = Convert.ToString(reader["occupation"]),
+                                PhoneNumber = Convert.ToString(reader["phone_number"]),
+                                EmailAddress = Convert.ToString(reader["email_address"]),
+                                SnsInfo = Convert.ToString(reader["sns_info"])
+                            };
+
+                            subcontractors.Add(subcontractor);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("データの取得エラー", ex);
                 }
             }
 
             return subcontractors;
         }
+        public Subcontractor GetSubcontractorById(int id)
+        {
+            Subcontractor subcontractor = null;
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                try
+                {
+                    command.CommandText = "SELECT * FROM Subcontractor WHERE id = @Id";
+                    command.Parameters.AddWithValue("@Id", id);
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            subcontractor = new Subcontractor
+                            {
+                                Id = Convert.ToInt32(reader["id"]),
+                                CompanyName = Convert.ToString(reader["company_name"]),
+                                Address = Convert.ToString(reader["address"]),
+                                Occupation = Convert.ToString(reader["occupation"]),
+                                PhoneNumber = Convert.ToString(reader["phone_number"]),
+                                EmailAddress = Convert.ToString(reader["email_address"]),
+                                SnsInfo = Convert.ToString(reader["sns_info"])
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("データの取得エラー", ex);
+                }
+            }
+
+            return subcontractor;
+        }
+        public List<Subcontractor> SearchSubcontractors(string keyword)
+        {
+            List<Subcontractor> subcontractors = new List<Subcontractor>();
+
+            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                try
+                {
+                    command.CommandText = "SELECT * FROM Subcontractor WHERE id = @Keyword OR company_name LIKE @Keyword OR occupation LIKE @Keyword";
+                    command.Parameters.AddWithValue("@Keyword", $"%{keyword}%");
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Subcontractor subcontractor = new Subcontractor
+                            {
+                                Id = Convert.ToInt32(reader["id"]),
+                                CompanyName = Convert.ToString(reader["company_name"]),
+                                Address = Convert.ToString(reader["address"]),
+                                Occupation = Convert.ToString(reader["occupation"]),
+                                PhoneNumber = Convert.ToString(reader["phone_number"]),
+                                EmailAddress = Convert.ToString(reader["email_address"]),
+                                SnsInfo = Convert.ToString(reader["sns_info"])
+                            };
+
+                            subcontractors.Add(subcontractor);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler.ShowErrorMessage("検索エラー", ex);
+                }
+            }
+
+            return subcontractors;
+        }
+
     }
 }
