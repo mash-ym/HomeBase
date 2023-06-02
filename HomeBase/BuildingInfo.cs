@@ -20,17 +20,15 @@ namespace HomeBase
     public class BuildingInfoRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
 
-        public BuildingInfoRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public BuildingInfoRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
         }
 
         public void InsertBuildingInfo(BuildingInfo buildingInfo)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -61,7 +59,7 @@ namespace HomeBase
         {
             List<BuildingInfo> buildingInfoList = new List<BuildingInfo>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try
@@ -100,7 +98,7 @@ namespace HomeBase
         {
             BuildingInfo buildingInfo = null;
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try
@@ -136,7 +134,7 @@ namespace HomeBase
         }
         public void UpdateBuildingInfo(BuildingInfo buildingInfo)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try
@@ -170,7 +168,7 @@ namespace HomeBase
         }
         public void DeleteBuildingInfo(int buildingId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try
@@ -190,7 +188,7 @@ namespace HomeBase
         {
             List<BuildingInfo> buildingInfos = new List<BuildingInfo>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try

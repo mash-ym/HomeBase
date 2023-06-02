@@ -48,16 +48,14 @@ namespace HomeBase
     public class SubcontractorRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
 
-        public SubcontractorRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public SubcontractorRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
         }
         public void InsertSubcontractor(Subcontractor subcontractor)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -85,7 +83,7 @@ namespace HomeBase
         }
         public void UpdateSubcontractor(Subcontractor subcontractor)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -115,7 +113,7 @@ namespace HomeBase
         }
         public void DeleteSubcontractor(int subcontractorId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -139,7 +137,7 @@ namespace HomeBase
         {
             List<Subcontractor> subcontractors = new List<Subcontractor>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try
@@ -177,7 +175,7 @@ namespace HomeBase
         {
             Subcontractor subcontractor = null;
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try
@@ -214,7 +212,7 @@ namespace HomeBase
         {
             List<Subcontractor> subcontractors = new List<Subcontractor>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 try

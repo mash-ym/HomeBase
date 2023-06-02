@@ -20,17 +20,15 @@ namespace HomeBase
     public class RequestInfoRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
 
-        public RequestInfoRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public RequestInfoRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
         }
 
         public void InsertRequestInfo(RequestInfo requestInfo)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -61,7 +59,7 @@ namespace HomeBase
         }
         public void UpdateRequestInfo(RequestInfo requestInfo)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -96,7 +94,7 @@ namespace HomeBase
         {
             RequestInfo requestInfo = null;
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM RequestInfo WHERE Id = @Id";
@@ -127,7 +125,7 @@ namespace HomeBase
         {
             List<RequestInfo> requestInfoList = new List<RequestInfo>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM RequestInfo";
@@ -159,7 +157,7 @@ namespace HomeBase
         {
             List<RequestInfo> results = new List<RequestInfo>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM RequestInfo WHERE RequestContent LIKE @Keyword";
@@ -190,7 +188,7 @@ namespace HomeBase
         }
         public void DeleteRequestInfo(int id)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {

@@ -24,17 +24,15 @@ namespace HomeBase
     public class ConstructionRequestRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
 
-        public ConstructionRequestRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public ConstructionRequestRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
         }
 
         public void InsertConstructionRequest(ConstructionRequest constructionRequest)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -68,7 +66,7 @@ namespace HomeBase
 
         public void UpdateConstructionRequest(ConstructionRequest constructionRequest)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -104,7 +102,7 @@ namespace HomeBase
 
         public void DeleteConstructionRequest(int requestId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -129,7 +127,7 @@ namespace HomeBase
         {
             List<ConstructionRequest> constructionRequests = new List<ConstructionRequest>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM ConstructionRequest";
@@ -166,7 +164,7 @@ namespace HomeBase
         {
             ConstructionRequest constructionRequest = null;
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM ConstructionRequest WHERE RequestId = @RequestId";
@@ -202,7 +200,7 @@ namespace HomeBase
         {
             List<ConstructionRequest> results = new List<ConstructionRequest>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM ConstructionRequest WHERE ItemName LIKE @Keyword";

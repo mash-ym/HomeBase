@@ -19,17 +19,15 @@ namespace HomeBase
     public class CustomerInfoRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
 
-        public CustomerInfoRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public CustomerInfoRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
         }
 
         public void InsertCustomerInfo(CustomerInfo customerInfo)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -58,7 +56,7 @@ namespace HomeBase
 
         public void UpdateCustomerInfo(CustomerInfo customerInfo)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -89,7 +87,7 @@ namespace HomeBase
 
         public void DeleteCustomerInfo(int customerId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -114,7 +112,7 @@ namespace HomeBase
         {
             List<CustomerInfo> customerInfos = new List<CustomerInfo>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM CustomerInfo";
@@ -144,7 +142,7 @@ namespace HomeBase
 
         public CustomerInfo GetCustomerInfoById(int customerId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM CustomerInfo WHERE Id = @Id";
@@ -177,7 +175,7 @@ namespace HomeBase
         {
             List<CustomerInfo> results = new List<CustomerInfo>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM CustomerInfo WHERE Name LIKE @Keyword OR ProjectHistory LIKE @Keyword";

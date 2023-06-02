@@ -19,17 +19,17 @@ namespace HomeBase
     public class ScheduleRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
+        
 
-        public ScheduleRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public ScheduleRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
+            
         }
 
         public void InsertSchedule(Schedule schedule)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -59,7 +59,7 @@ namespace HomeBase
 
         public void UpdateSchedule(Schedule schedule)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -91,7 +91,7 @@ namespace HomeBase
 
         public void DeleteSchedule(int scheduleId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -116,7 +116,7 @@ namespace HomeBase
         {
             List<Schedule> schedules = new List<Schedule>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Schedule";
@@ -147,7 +147,7 @@ namespace HomeBase
 
         public Schedule GetScheduleById(int scheduleId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Schedule WHERE Id = @Id";
@@ -181,7 +181,7 @@ namespace HomeBase
         {
             List<Schedule> schedules = new List<Schedule>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Schedule WHERE SiteName LIKE @Keyword OR GroupName LIKE @Keyword";

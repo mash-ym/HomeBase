@@ -25,17 +25,15 @@ namespace HomeBase
     public class EstimateRepository
     {
         private readonly DBManager _dbManager;
-        private readonly ErrorHandler _errorHandler;
 
-        public EstimateRepository(DBManager dbManager, ErrorHandler errorHandler)
+        public EstimateRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
-            _errorHandler = errorHandler;
         }
 
         public void InsertEstimate(Estimate estimate)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -73,7 +71,7 @@ namespace HomeBase
 
         public void UpdateEstimate(Estimate estimate)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -114,7 +112,7 @@ namespace HomeBase
 
         public void DeleteEstimate(int estimateId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             using (SQLiteTransaction transaction = connection.BeginTransaction())
             {
@@ -139,7 +137,7 @@ namespace HomeBase
         {
             List<Estimate> estimates = new List<Estimate>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Estimate";
@@ -176,7 +174,7 @@ namespace HomeBase
 
         public Estimate GetEstimateById(int estimateId)
         {
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Estimate WHERE EstimateId = @EstimateId";
@@ -216,7 +214,7 @@ namespace HomeBase
         {
             List<Estimate> estimates = new List<Estimate>();
 
-            using (SQLiteConnection connection = _dbManager.GetConnection())
+            using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Estimate WHERE SiteName LIKE @Keyword OR SiteAddress LIKE @Keyword";
