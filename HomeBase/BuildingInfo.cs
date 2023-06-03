@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 
 namespace HomeBase
-{   
+{
 
     public class BuildingInfo
     {
@@ -15,7 +15,14 @@ namespace HomeBase
         public double Area { get; set; }
         public string ProjectHistory { get; set; }
         public byte[] DrawingPdf { get; set; }
+
+        public Estimate Estimate { get; set; }
+        public List<SpecificationDocument> SpecificationDocuments { get; set; }
+        public List<Drawing> Drawings { get; set; }
+        public List<RepairHistory> RepairHistories { get; set; }
     }
+
+
 
     public class BuildingInfoRepository
     {
