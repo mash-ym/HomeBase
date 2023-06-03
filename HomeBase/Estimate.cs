@@ -6,21 +6,24 @@ namespace HomeBase
 {
     public class Estimate
     {
-        public int EstimateId { get; set; }
-        public string SiteName { get; set; }
-        public string SiteAddress { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public int RequestInfoId { get; set; }
-        public int CustomerInfoId { get; set; }
-        public int BuildingInfoId { get; set; }
-        public DateTime IssueDate { get; set; }
-        public int CreatorId { get; set; }
-        public decimal TotalAmount { get; set; }
-        public DateTime DueDate { get; set; }
-        public string ChangeHistory { get; set; }
-        public string DeliveryLocation { get; set; }
-        public byte[] DrawingPdf { get; set; }
+        public int EstimateId { get; set; } // 見積もりID
+        public string SiteName { get; set; } // 現場名
+        public int ProjectId { get; set; } // プロジェクトID
+        public string SiteAddress { get; set; } // 現場住所
+        public DateTime CreatedAt { get; set; } // 作成日時
+        public int RequestInfoId { get; set; } // 依頼情報ID
+        public int CustomerInfoId { get; set; } // 顧客情報ID
+        public int BuildingInfoId { get; set; } // 建物情報ID
+        public DateTime IssueDate { get; set; } // 発行日
+        public int CreatorId { get; set; } // 作成者ID
+        public decimal TotalAmount { get; set; } // 合計金額
+        public DateTime DueDate { get; set; } // 納期
+        public string ChangeHistory { get; set; } // 変更履歴
+        public string DeliveryLocation { get; set; } // 納品場所
+        public byte[] DrawingPdf { get; set; } // 図面のPDFデータ
+        public List<EstimateDetail> EstimateDetails { get; set; } // 見積明細との関連
     }
+
 
     public class EstimateRepository
     {
@@ -249,6 +252,9 @@ namespace HomeBase
 
             return estimates;
         }
+
+        
+
     }
 }
 

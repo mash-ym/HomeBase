@@ -7,6 +7,7 @@ namespace HomeBase
     public class Schedule
     {
         public int Id { get; set; }
+        public int ProjectId { get; set; } // プロジェクトID
         public string SiteName { get; set; }
         public string SiteDuration { get; set; }
         public string GroupName { get; set; }
@@ -14,13 +15,13 @@ namespace HomeBase
         public DateTime EndDate { get; set; }
         public decimal WorkHours { get; set; }
         public int SubcontractorId { get; set; }
+        public Project Project { get; set; } // プロジェクトとの関連
     }
 
     public class ScheduleRepository
     {
         private readonly DBManager _dbManager;
         
-
         public ScheduleRepository(DBManager dbManager)
         {
             _dbManager = dbManager;
@@ -35,8 +36,9 @@ namespace HomeBase
             {
                 try
                 {
-                    command.CommandText = "INSERT INTO Schedule (SiteName, SiteDuration, GroupName, StartDate, EndDate, WorkHours, SubcontractorId)" +
-                                          "VALUES (@SiteName, @SiteDuration, @GroupName, @StartDate, @EndDate, @WorkHours, @SubcontractorId)";
+                    command.CommandText = "INSERT INTO Schedule (ProjectId, SiteName, SiteDuration, GroupName, StartDate, EndDate, WorkHours, SubcontractorId) " +
+                                          "VALUES (@ProjectId, @SiteName, @SiteDuration, @GroupName, @StartDate, @EndDate, @WorkHours, @SubcontractorId)";
+                    command.Parameters.AddWithValue("@ProjectId", schedule.ProjectId);
                     command.Parameters.AddWithValue("@SiteName", schedule.SiteName);
                     command.Parameters.AddWithValue("@SiteDuration", schedule.SiteDuration);
                     command.Parameters.AddWithValue("@GroupName", schedule.GroupName);
@@ -57,6 +59,7 @@ namespace HomeBase
             }
         }
 
+
         public void UpdateSchedule(Schedule schedule)
         {
             using (SQLiteConnection connection = _dbManager.Connection)
@@ -65,9 +68,10 @@ namespace HomeBase
             {
                 try
                 {
-                    command.CommandText = "UPDATE Schedule SET SiteName = @SiteName, SiteDuration = @SiteDuration, GroupName = @GroupName, " +
+                    command.CommandText = "UPDATE Schedule SET ProjectId = @ProjectId, SiteName = @SiteName, SiteDuration = @SiteDuration, GroupName = @GroupName, " +
                                           "StartDate = @StartDate, EndDate = @EndDate, WorkHours = @WorkHours, SubcontractorId = @SubcontractorId " +
                                           "WHERE Id = @Id";
+                    command.Parameters.AddWithValue("@ProjectId", schedule.ProjectId);
                     command.Parameters.AddWithValue("@SiteName", schedule.SiteName);
                     command.Parameters.AddWithValue("@SiteDuration", schedule.SiteDuration);
                     command.Parameters.AddWithValue("@GroupName", schedule.GroupName);
@@ -128,13 +132,15 @@ namespace HomeBase
                         Schedule schedule = new Schedule
                         {
                             Id = Convert.ToInt32(reader["Id"]),
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
                             SiteName = Convert.ToString(reader["SiteName"]),
                             SiteDuration = Convert.ToString(reader["SiteDuration"]),
                             GroupName = Convert.ToString(reader["GroupName"]),
                             StartDate = Convert.ToDateTime(reader["StartDate"]),
                             EndDate = Convert.ToDateTime(reader["EndDate"]),
                             WorkHours = Convert.ToDecimal(reader["WorkHours"]),
-                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"])
+                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"]),
+                            Project = null // プロジェクト情報は別途取得する必要があるため、nullに設定
                         };
 
                         schedules.Add(schedule);
@@ -160,13 +166,15 @@ namespace HomeBase
                         Schedule schedule = new Schedule
                         {
                             Id = Convert.ToInt32(reader["Id"]),
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
                             SiteName = Convert.ToString(reader["SiteName"]),
                             SiteDuration = Convert.ToString(reader["SiteDuration"]),
                             GroupName = Convert.ToString(reader["GroupName"]),
                             StartDate = Convert.ToDateTime(reader["StartDate"]),
                             EndDate = Convert.ToDateTime(reader["EndDate"]),
                             WorkHours = Convert.ToDecimal(reader["WorkHours"]),
-                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"])
+                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"]),
+                            Project = null // プロジェクト情報は別途取得する必要があるため、nullに設定
                         };
 
                         return schedule;
@@ -194,13 +202,15 @@ namespace HomeBase
                         Schedule schedule = new Schedule
                         {
                             Id = Convert.ToInt32(reader["Id"]),
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
                             SiteName = Convert.ToString(reader["SiteName"]),
                             SiteDuration = Convert.ToString(reader["SiteDuration"]),
                             GroupName = Convert.ToString(reader["GroupName"]),
                             StartDate = Convert.ToDateTime(reader["StartDate"]),
                             EndDate = Convert.ToDateTime(reader["EndDate"]),
                             WorkHours = Convert.ToDecimal(reader["WorkHours"]),
-                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"])
+                            SubcontractorId = Convert.ToInt32(reader["SubcontractorId"]),
+                            Project = null // プロジェクト情報は別途取得する必要があるため、nullに設定
                         };
 
                         schedules.Add(schedule);

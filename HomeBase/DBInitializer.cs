@@ -44,6 +44,7 @@ namespace HomeBase
             CreateRequestInfoTable(connection);
             CreateScheduleTable(connection);
             CreateSubcontractorTable(connection);
+            CreateProjectTable(connection);
         }
 
 
@@ -58,6 +59,7 @@ namespace HomeBase
             RequestInfoRepository requestInfoRepository = new RequestInfoRepository(_dbManager);
             ScheduleRepository scheduleRepository = new ScheduleRepository(_dbManager);
             SubcontractorRepository subcontractorRepository = new SubcontractorRepository(_dbManager);
+            ProjectRepository projectRepository = new ProjectRepository(_dbManager);
         }
 
 
@@ -122,29 +124,28 @@ namespace HomeBase
         {
             string createQuery = @"
                 CREATE TABLE IF NOT EXISTS Estimate (
-                    EstimateID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    EstimateId INTEGER PRIMARY KEY AUTOINCREMENT,
                     SiteName TEXT,
+                    ProjectId INTEGER,
                     SiteAddress TEXT,
                     CreatedAt DATETIME,
-                    RequestInfoID INTEGER,
-                    CustomerInfoID INTEGER,
-                    BuildingInfoID INTEGER,
-                    IssuedDate DATE,
-                    CreatorID INTEGER,
-                    TotalAmount REAL,
-                    Deadline DATE,
-                    RevisionHistory TEXT,
+                    RequestInfoId INTEGER,
+                    CustomerInfoId INTEGER,
+                    BuildingInfoId INTEGER,
+                    IssueDate DATETIME,
+                    CreatorId INTEGER,
+                    TotalAmount DECIMAL,
+                    DueDate DATETIME,
+                    ChangeHistory TEXT,
                     DeliveryLocation TEXT,
-                    DrawingPDF BLOB,
-                    FOREIGN KEY (RequestInfoID) REFERENCES RequestInfo (RequestInfoID),
-                    FOREIGN KEY (CustomerInfoID) REFERENCES CustomerInfo (customer_info_id),
-                    FOREIGN KEY (BuildingInfoID) REFERENCES BuildingInfo (building_info_id),
-                    FOREIGN KEY (CreatorID) REFERENCES Creator (CreatorID)
+                    DrawingPdf BLOB,
+                    FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
                 );
             ";
 
             ExecuteNonQuery(connection, createQuery);
         }
+
 
         private void CreateEstimateDetailTable(SQLiteConnection connection)
         {
@@ -184,18 +185,22 @@ namespace HomeBase
         {
             string createQuery = @"
                 CREATE TABLE IF NOT EXISTS Schedule (
-                    ScheduleID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ConstructionID INTEGER,
-                    Date DATE,
-                    StartTime TIME,
-                    EndTime TIME,
-                    Note TEXT,
-                    FOREIGN KEY (ConstructionID) REFERENCES Construction (ID)
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ProjectId INTEGER,
+                    SiteName TEXT,
+                    SiteDuration TEXT,
+                    GroupName TEXT,
+                    StartDate DATETIME,
+                    EndDate DATETIME,
+                    WorkHours DECIMAL,
+                    SubcontractorId INTEGER,
+                    FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
                 );
             ";
 
             ExecuteNonQuery(connection, createQuery);
         }
+
 
         private void CreateSubcontractorTable(SQLiteConnection connection)
         {
@@ -206,6 +211,21 @@ namespace HomeBase
                     ContactPerson TEXT,
                     PhoneNumber TEXT,
                     EmailAddress TEXT
+                );
+            ";
+
+            ExecuteNonQuery(connection, createQuery);
+        }
+
+        private void CreateProjectTable(SQLiteConnection connection)
+        {
+            string createQuery = @"
+                CREATE TABLE IF NOT EXISTS Project (
+                    ProjectID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ProjectName TEXT,
+                    StartDate TEXT,
+                    EndDate TEXT,
+                    Status TEXT
                 );
             ";
 

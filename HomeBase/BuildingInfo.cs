@@ -15,6 +15,7 @@ namespace HomeBase
         public double Area { get; set; }
         public string ProjectHistory { get; set; }
         public byte[] DrawingPdf { get; set; }
+        public Project Project { get; set; }
 
         public Estimate Estimate { get; set; }
         public List<SpecificationDocument> SpecificationDocuments { get; set; }

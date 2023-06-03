@@ -8,7 +8,9 @@ namespace HomeBase
     public class ConstructionRequest
     {
         public int RequestId { get; set; }
-        public string EstimateId { get; set; }
+        public int ProjectId { get; set; } // プロジェクトID
+        public Project Project { get; set; } // プロジェクトとの関連
+        public int EstimateId { get; set; }
         public string ItemName { get; set; }
         public double CostQuantity { get; set; }
         public string CostUnit { get; set; }
@@ -19,7 +21,9 @@ namespace HomeBase
         public string SiteContact { get; set; }
         public string SalesContact { get; set; }
         public byte[] DrawingPDF { get; set; }
+        public Estimate Estimate { get; set; }
     }
+
 
     public class ConstructionRequestRepository
     {
@@ -38,8 +42,9 @@ namespace HomeBase
             {
                 try
                 {
-                    command.CommandText = "INSERT INTO ConstructionRequest (EstimateId, ItemName, CostQuantity, CostUnit, CostUnitPrice, WorkHours, StartDate, SubcontractorId, SiteContact, SalesContact, DrawingPDF)" +
-                                          "VALUES (@EstimateId, @ItemName, @CostQuantity, @CostUnit, @CostUnitPrice, @WorkHours, @StartDate, @SubcontractorId, @SiteContact, @SalesContact, @DrawingPDF)";
+                    command.CommandText = "INSERT INTO ConstructionRequest (ProjectId, EstimateId, ItemName, CostQuantity, CostUnit, CostUnitPrice, WorkHours, StartDate, SubcontractorId, SiteContact, SalesContact, DrawingPDF)" +
+                                          "VALUES (@ProjectId, @EstimateId, @ItemName, @CostQuantity, @CostUnit, @CostUnitPrice, @WorkHours, @StartDate, @SubcontractorId, @SiteContact, @SalesContact, @DrawingPDF)";
+                    command.Parameters.AddWithValue("@ProjectId", constructionRequest.ProjectId);
                     command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
                     command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
                     command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
@@ -64,6 +69,7 @@ namespace HomeBase
             }
         }
 
+
         public void UpdateConstructionRequest(ConstructionRequest constructionRequest)
         {
             using (SQLiteConnection connection = _dbManager.Connection)
@@ -72,9 +78,8 @@ namespace HomeBase
             {
                 try
                 {
-                    command.CommandText = "UPDATE ConstructionRequest SET EstimateId = @EstimateId, ItemName = @ItemName, CostQuantity = @CostQuantity, CostUnit = @CostUnit, CostUnitPrice = @CostUnitPrice, " +
-                                          "WorkHours = @WorkHours, StartDate = @StartDate, SubcontractorId = @SubcontractorId, SiteContact = @SiteContact, SalesContact = @SalesContact, DrawingPDF = @DrawingPDF " +
-                                          "WHERE RequestId = @RequestId";
+                    command.CommandText = "UPDATE ConstructionRequest SET ProjectId = @ProjectId, EstimateId = @EstimateId, ItemName = @ItemName, CostQuantity = @CostQuantity, CostUnit = @CostUnit, CostUnitPrice = @CostUnitPrice, WorkHours = @WorkHours, StartDate = @StartDate, SubcontractorId = @SubcontractorId, SiteContact = @SiteContact, SalesContact = @SalesContact, DrawingPDF = @DrawingPDF WHERE RequestId = @RequestId";
+                    command.Parameters.AddWithValue("@ProjectId", constructionRequest.ProjectId);
                     command.Parameters.AddWithValue("@EstimateId", constructionRequest.EstimateId);
                     command.Parameters.AddWithValue("@ItemName", constructionRequest.ItemName);
                     command.Parameters.AddWithValue("@CostQuantity", constructionRequest.CostQuantity);
@@ -136,20 +141,22 @@ namespace HomeBase
                 {
                     while (reader.Read())
                     {
-                        ConstructionRequest constructionRequest = new ConstructionRequest
+                        ConstructionRequest constructionRequest = new ConstructionRequest()
                         {
                             RequestId = Convert.ToInt32(reader["RequestId"]),
-                            EstimateId = Convert.ToString(reader["EstimateId"]),
-                            ItemName = Convert.ToString(reader["ItemName"]),
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
+                            EstimateId = Convert.ToInt32(reader["EstimateId"]),
+                            ItemName = reader["ItemName"].ToString(),
                             CostQuantity = Convert.ToDouble(reader["CostQuantity"]),
-                            CostUnit = Convert.ToString(reader["CostUnit"]),
+                            CostUnit = reader["CostUnit"].ToString(),
                             CostUnitPrice = Convert.ToDouble(reader["CostUnitPrice"]),
                             WorkHours = Convert.ToDouble(reader["WorkHours"]),
                             StartDate = Convert.ToDateTime(reader["StartDate"]),
                             SubcontractorId = Convert.ToInt32(reader["SubcontractorId"]),
-                            SiteContact = Convert.ToString(reader["SiteContact"]),
-                            SalesContact = Convert.ToString(reader["SalesContact"]),
-                            DrawingPDF = (byte[])reader["DrawingPDF"]
+                            SiteContact = reader["SiteContact"].ToString(),
+                            SalesContact = reader["SalesContact"].ToString(),
+                            DrawingPDF = (byte[])reader["DrawingPDF"],
+                            Project = null // 関連するプロジェクト情報は初期値nullとしておく
                         };
 
                         constructionRequests.Add(constructionRequest);
@@ -157,8 +164,15 @@ namespace HomeBase
                 }
             }
 
+            // プロジェクト情報の取得
+            foreach (ConstructionRequest constructionRequest in constructionRequests)
+            {
+                constructionRequest.Project = GetProjectById(constructionRequest.ProjectId);
+            }
+
             return constructionRequests;
         }
+
 
         public ConstructionRequest GetConstructionRequestById(int requestId)
         {
@@ -174,27 +188,66 @@ namespace HomeBase
                 {
                     if (reader.Read())
                     {
-                        constructionRequest = new ConstructionRequest
+                        constructionRequest = new ConstructionRequest()
                         {
                             RequestId = Convert.ToInt32(reader["RequestId"]),
-                            EstimateId = Convert.ToString(reader["EstimateId"]),
-                            ItemName = Convert.ToString(reader["ItemName"]),
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
+                            EstimateId = Convert.ToInt32(reader["EstimateId"]),
+                            ItemName = reader["ItemName"].ToString(),
                             CostQuantity = Convert.ToDouble(reader["CostQuantity"]),
-                            CostUnit = Convert.ToString(reader["CostUnit"]),
+                            CostUnit = reader["CostUnit"].ToString(),
                             CostUnitPrice = Convert.ToDouble(reader["CostUnitPrice"]),
                             WorkHours = Convert.ToDouble(reader["WorkHours"]),
                             StartDate = Convert.ToDateTime(reader["StartDate"]),
                             SubcontractorId = Convert.ToInt32(reader["SubcontractorId"]),
-                            SiteContact = Convert.ToString(reader["SiteContact"]),
-                            SalesContact = Convert.ToString(reader["SalesContact"]),
-                            DrawingPDF = (byte[])reader["DrawingPDF"]
+                            SiteContact = reader["SiteContact"].ToString(),
+                            SalesContact = reader["SalesContact"].ToString(),
+                            DrawingPDF = (byte[])reader["DrawingPDF"],
+                            Project = null // 関連するプロジェクト情報は初期値nullとしておく
                         };
                     }
                 }
             }
 
+            if (constructionRequest != null)
+            {
+                // プロジェクト情報の取得
+                constructionRequest.Project = GetProjectById(constructionRequest.ProjectId);
+            }
+
             return constructionRequest;
         }
+        public Project GetProjectById(int projectId)
+        {
+            Project project = null;
+
+            using (SQLiteConnection connection = _dbManager.Connection)
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Project WHERE ProjectId = @ProjectId";
+                command.Parameters.AddWithValue("@ProjectId", projectId);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        project = new Project
+                        {
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
+                            ProjectName = reader["ProjectName"].ToString(),
+                            StartDate = Convert.ToDateTime(reader["StartDate"]),
+                            EndDate = Convert.ToDateTime(reader["EndDate"]),
+                            Status = reader["Status"].ToString(),
+                            // 他のプロパティを設定する
+                        };
+                    }
+                }
+            }
+
+            return project;
+        }
+
+
 
         public List<ConstructionRequest> SearchConstructionRequests(string keyword)
         {
@@ -203,7 +256,9 @@ namespace HomeBase
             using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT * FROM ConstructionRequest WHERE ItemName LIKE @Keyword";
+                command.CommandText = "SELECT cr.*, p.* FROM ConstructionRequest cr " +
+                                      "INNER JOIN Project p ON cr.ProjectId = p.Id " +
+                                      "WHERE cr.ItemName LIKE @Keyword OR cr.SiteContact LIKE @Keyword";
                 command.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
 
                 using (SQLiteDataReader reader = command.ExecuteReader())
@@ -213,17 +268,27 @@ namespace HomeBase
                         ConstructionRequest constructionRequest = new ConstructionRequest
                         {
                             RequestId = Convert.ToInt32(reader["RequestId"]),
-                            EstimateId = Convert.ToString(reader["EstimateId"]),
-                            ItemName = Convert.ToString(reader["ItemName"]),
+                            ProjectId = Convert.ToInt32(reader["ProjectId"]),
+                            EstimateId = Convert.ToInt32(reader["EstimateId"]),
+                            ItemName = reader["ItemName"].ToString(),
                             CostQuantity = Convert.ToDouble(reader["CostQuantity"]),
-                            CostUnit = Convert.ToString(reader["CostUnit"]),
+                            CostUnit = reader["CostUnit"].ToString(),
                             CostUnitPrice = Convert.ToDouble(reader["CostUnitPrice"]),
                             WorkHours = Convert.ToDouble(reader["WorkHours"]),
                             StartDate = Convert.ToDateTime(reader["StartDate"]),
                             SubcontractorId = Convert.ToInt32(reader["SubcontractorId"]),
-                            SiteContact = Convert.ToString(reader["SiteContact"]),
-                            SalesContact = Convert.ToString(reader["SalesContact"]),
-                            DrawingPDF = (byte[])reader["DrawingPDF"]
+                            SiteContact = reader["SiteContact"].ToString(),
+                            SalesContact = reader["SalesContact"].ToString(),
+                            DrawingPDF = (byte[])reader["DrawingPDF"],
+                            Project = new Project
+                            {
+                                ProjectId = Convert.ToInt32(reader["ProjectId"]),
+                                ProjectName = reader["ProjectName"].ToString(),
+                                StartDate = Convert.ToDateTime(reader["StartDate"]),
+                                EndDate = Convert.ToDateTime(reader["EndDate"]),
+                                Status = reader["Status"].ToString()
+                                // プロジェクト情報の他のプロパティを設定する
+                            }
                         };
 
                         results.Add(constructionRequest);
@@ -233,5 +298,7 @@ namespace HomeBase
 
             return results;
         }
+
+
     }
 }

@@ -10,6 +10,7 @@ namespace HomeBase
     public class EstimateDetail
     {
         public int DetailId { get; set; }
+        public int ProjectId { get; set; } // プロジェクトID
         public int? ParentDetailId { get; set; }
         public int EstimateId { get; set; }
         public string ItemName { get; set; }
@@ -30,6 +31,7 @@ namespace HomeBase
         public string GroupName { get; set; }
         public string Dependency { get; set; }
         public List<EstimateDetail> Children { get; set; }
+        public Estimate Estimate { get; set; } // Estimateとの関連
 
         public EstimateDetail()
         {
