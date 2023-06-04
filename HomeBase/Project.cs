@@ -16,6 +16,8 @@ namespace HomeBase
         public string Status { get; set; }
         public Estimate Estimate { get; set; }
         public List<ConstructionRequest> ConstructionRequests { get; set; }
+        public List<Estimate> Estimates { get; set; }
+        public List<SpecificationDocument> SpecificationDocuments { get; set; }
     }
     public class ProjectRepository
     {

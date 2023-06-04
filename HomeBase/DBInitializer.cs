@@ -45,6 +45,7 @@ namespace HomeBase
             CreateScheduleTable(connection);
             CreateSubcontractorTable(connection);
             CreateProjectTable(connection);
+            CreateSpecificationDocumentTable(connection);
         }
 
 
@@ -60,6 +61,7 @@ namespace HomeBase
             ScheduleRepository scheduleRepository = new ScheduleRepository(_dbManager);
             SubcontractorRepository subcontractorRepository = new SubcontractorRepository(_dbManager);
             ProjectRepository projectRepository = new ProjectRepository(_dbManager);
+            SpecificationDocumentRepository specificationDocumentRepository = new SpecificationDocumentRepository(_dbManager);
         }
 
 
@@ -85,19 +87,22 @@ namespace HomeBase
         {
             string createQuery = @"
                 CREATE TABLE IF NOT EXISTS BuildingInfo (
-                    building_info_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    building_name TEXT NOT NULL,
-                    room_number TEXT,
-                    structure TEXT,
-                    address TEXT,
-                    area REAL,
-                    project_history TEXT,
-                    drawing_pdf BLOB
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    BuildingName TEXT,
+                    RoomNumber TEXT,
+                    Structure TEXT,
+                    Address TEXT,
+                    Area REAL,
+                    ProjectHistory TEXT,
+                    DrawingPdf BLOB,
+                    ProjectId INTEGER,
+                    FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
                 );
             ";
 
             ExecuteNonQuery(connection, createQuery);
         }
+
 
         private void CreateConstructionTable(SQLiteConnection connection)
         {
@@ -201,7 +206,6 @@ namespace HomeBase
             ExecuteNonQuery(connection, createQuery);
         }
 
-
         private void CreateSubcontractorTable(SQLiteConnection connection)
         {
             string createQuery = @"
@@ -231,6 +235,29 @@ namespace HomeBase
 
             ExecuteNonQuery(connection, createQuery);
         }
+
+        private void CreateSpecificationDocumentTable(SQLiteConnection connection)
+        {
+            string createQuery = @"
+        CREATE TABLE IF NOT EXISTS SpecificationDocument (
+            DocumentId INTEGER PRIMARY KEY AUTOINCREMENT,
+            DocumentName TEXT,
+            DocumentType TEXT,
+            ProjectId INTEGER,
+            ItemName TEXT,
+            Specification TEXT,
+            ConstructionRoom TEXT,
+            ConstructionSection TEXT,
+            DetailId INTEGER,
+            ConstructionDate DATE,
+            ServiceLife INTEGER,
+            FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
+        );
+    ";
+
+            ExecuteNonQuery(connection, createQuery);
+        }
+
 
         private void ExecuteNonQuery(SQLiteConnection connection, string query)
         {

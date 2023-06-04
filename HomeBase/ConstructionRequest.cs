@@ -69,7 +69,6 @@ namespace HomeBase
             }
         }
 
-
         public void UpdateConstructionRequest(ConstructionRequest constructionRequest)
         {
             using (SQLiteConnection connection = _dbManager.Connection)
@@ -173,7 +172,6 @@ namespace HomeBase
             return constructionRequests;
         }
 
-
         public ConstructionRequest GetConstructionRequestById(int requestId)
         {
             ConstructionRequest constructionRequest = null;
@@ -217,6 +215,7 @@ namespace HomeBase
 
             return constructionRequest;
         }
+
         public Project GetProjectById(int projectId)
         {
             Project project = null;
@@ -246,8 +245,6 @@ namespace HomeBase
 
             return project;
         }
-
-
 
         public List<ConstructionRequest> SearchConstructionRequests(string keyword)
         {

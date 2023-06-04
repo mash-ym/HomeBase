@@ -8,17 +8,26 @@ namespace HomeBase
 {
     public class SpecificationDocument
     {
-        public string ItemName { get; set; }
-        public string Specification { get; set; }
-        public string ConstructionRoom { get; set; }
-        public string ConstructionSection { get; set; }
-        public int DetailId { get; set; }
-        public DateTime ConstructionDate { get; set; }
-        public int ServiceLife { get; set; }
+        public int DocumentId { get; set; } // 仕様書のID
+        public string DocumentName { get; set; } // 仕様書の名前
+        public string DocumentType { get; set; } // 仕様書の種類
+        public int ProjectId { get; set; } // プロジェクトのID
+        public string ItemName { get; set; } // 項目名
+        public string Specification { get; set; } // 仕様
+        public string ConstructionRoom { get; set; } // 部屋名
+        public string ConstructionSection { get; set; } // 部位名
+        public int DetailId { get; set; } // 詳細ID
+        public DateTime ConstructionDate { get; set; } // 工事日
+        public int ServiceLife { get; set; } // 使用寿命
 
-        public SpecificationDocument(string itemName, string specification, string constructionRoom,
-            string constructionSection, int detailId, DateTime constructionDate, int serviceLife)
+        public SpecificationDocument(int documentId, string documentName, string documentType, int projectId,
+            string itemName, string specification, string constructionRoom, string constructionSection,
+            int detailId, DateTime constructionDate, int serviceLife)
         {
+            DocumentId = documentId;
+            DocumentName = documentName;
+            DocumentType = documentType;
+            ProjectId = projectId;
             ItemName = itemName;
             Specification = specification;
             ConstructionRoom = constructionRoom;
@@ -29,4 +38,13 @@ namespace HomeBase
         }
     }
 
+    public class SpecificationDocumentRepository
+    {
+        private readonly DBManager _dbManager;
+
+        public SpecificationDocumentRepository(DBManager dbManager)
+        {
+            _dbManager = dbManager;
+        }
+    }
 }
