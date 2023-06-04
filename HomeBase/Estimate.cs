@@ -22,7 +22,7 @@ namespace HomeBase
         public string DeliveryLocation { get; set; } // 納品場所
         public byte[] DrawingPdf { get; set; } // 図面のPDFデータ
         public List<EstimateDetail> EstimateDetails { get; set; } // 見積明細との関連
-        public List<SpecificationDocument> SpecificationDocuments { get; set; }
+        public SpecificationDocument SpecificationDocument { get; set; } // 仕様書情報
     }
 
 
@@ -45,10 +45,11 @@ namespace HomeBase
                 {
                     // Estimate テーブルへの挿入クエリの作成
                     command.CommandText = @"
-                INSERT INTO Estimate (SiteName, ProjectId, SiteAddress, CreatedAt, RequestInfoId, CustomerInfoId, BuildingInfoId, IssueDate,
-                                      CreatorId, TotalAmount, DueDate, ChangeHistory, DeliveryLocation, DrawingPdf)
-                VALUES (@SiteName, @ProjectId, @SiteAddress, @CreatedAt, @RequestInfoId, @CustomerInfoId, @BuildingInfoId, @IssueDate,
-                        @CreatorId, @TotalAmount, @DueDate, @ChangeHistory, @DeliveryLocation, @DrawingPdf)";
+                        INSERT INTO Estimate (SiteName, ProjectId, SiteAddress, CreatedAt, RequestInfoId, CustomerInfoId, BuildingInfoId, IssueDate,
+                                              CreatorId, TotalAmount, DueDate, ChangeHistory, DeliveryLocation, DrawingPdf)
+                        VALUES (@SiteName, @ProjectId, @SiteAddress, @CreatedAt, @RequestInfoId, @CustomerInfoId, @BuildingInfoId, @IssueDate,
+                                @CreatorId, @TotalAmount, @DueDate, @ChangeHistory, @DeliveryLocation, @DrawingPdf);
+                        SELECT last_insert_rowid();";
 
                     // パラメータの設定
                     command.Parameters.AddWithValue("@SiteName", estimate.SiteName);
@@ -67,7 +68,21 @@ namespace HomeBase
                     command.Parameters.AddWithValue("@DrawingPdf", estimate.DrawingPdf);
 
                     // クエリの実行
-                    command.ExecuteNonQuery();
+                    int estimateId = Convert.ToInt32(command.ExecuteScalar());
+
+                    // 仕様書の挿入
+                    SpecificationDocumentRepository specificationDocumentRepository = new SpecificationDocumentRepository(_dbManager);
+                    specificationDocumentRepository.InsertSpecificationDocument(estimate.SpecificationDocument, estimateId);
+
+                    // 見積明細の挿入
+                    if (estimate.EstimateDetails != null && estimate.EstimateDetails.Count > 0)
+                    {
+                        EstimateDetailRepository estimateDetailRepository = new EstimateDetailRepository(_dbManager);
+                        foreach (EstimateDetail estimateDetail in estimate.EstimateDetails)
+                        {
+                            estimateDetailRepository.InsertEstimateDetail(estimateDetail, estimateId);
+                        }
+                    }
 
                     // トランザクションのコミット
                     transaction.Commit();
@@ -91,12 +106,22 @@ namespace HomeBase
                 {
                     // Estimate テーブルの更新クエリの作成
                     command.CommandText = @"
-                UPDATE Estimate
-                SET SiteName = @SiteName, ProjectId = @ProjectId, SiteAddress = @SiteAddress, CreatedAt = @CreatedAt,
-                    RequestInfoId = @RequestInfoId, CustomerInfoId = @CustomerInfoId, BuildingInfoId = @BuildingInfoId,
-                    IssueDate = @IssueDate, CreatorId = @CreatorId, TotalAmount = @TotalAmount, DueDate = @DueDate,
-                    ChangeHistory = @ChangeHistory, DeliveryLocation = @DeliveryLocation, DrawingPdf = @DrawingPdf
-                WHERE EstimateId = @EstimateId";
+                        UPDATE Estimate
+                        SET SiteName = @SiteName,
+                            ProjectId = @ProjectId,
+                            SiteAddress = @SiteAddress,
+                            CreatedAt = @CreatedAt,
+                            RequestInfoId = @RequestInfoId,
+                            CustomerInfoId = @CustomerInfoId,
+                            BuildingInfoId = @BuildingInfoId,
+                            IssueDate = @IssueDate,
+                            CreatorId = @CreatorId,
+                            TotalAmount = @TotalAmount,
+                            DueDate = @DueDate,
+                            ChangeHistory = @ChangeHistory,
+                            DeliveryLocation = @DeliveryLocation,
+                            DrawingPdf = @DrawingPdf
+                        WHERE EstimateId = @EstimateId";
 
                     // パラメータの設定
                     command.Parameters.AddWithValue("@SiteName", estimate.SiteName);
@@ -118,6 +143,20 @@ namespace HomeBase
                     // クエリの実行
                     command.ExecuteNonQuery();
 
+                    // 仕様書の更新
+                    SpecificationDocumentRepository specificationDocumentRepository = new SpecificationDocumentRepository(_dbManager);
+                    specificationDocumentRepository.UpdateSpecificationDocument(estimate.SpecificationDocument);
+
+                    // 見積明細の更新
+                    if (estimate.EstimateDetails != null && estimate.EstimateDetails.Count > 0)
+                    {
+                        EstimateDetailRepository estimateDetailRepository = new EstimateDetailRepository(_dbManager);
+                        foreach (EstimateDetail estimateDetail in estimate.EstimateDetails)
+                        {
+                            estimateDetailRepository.UpdateEstimateDetail(estimateDetail);
+                        }
+                    }
+
                     // トランザクションのコミット
                     transaction.Commit();
                 }
@@ -138,20 +177,33 @@ namespace HomeBase
             {
                 try
                 {
+                    // Estimate テーブルからの削除クエリの作成
                     command.CommandText = "DELETE FROM Estimate WHERE EstimateId = @EstimateId";
                     command.Parameters.AddWithValue("@EstimateId", estimateId);
 
+                    // クエリの実行
                     command.ExecuteNonQuery();
 
+                    // 仕様書の削除
+                    SpecificationDocumentRepository specificationDocumentRepository = new SpecificationDocumentRepository(_dbManager);
+                    specificationDocumentRepository.DeleteSpecificationDocument(estimateId);
+
+                    // 見積明細の削除
+                    EstimateDetailRepository estimateDetailRepository = new EstimateDetailRepository(_dbManager);
+                    estimateDetailRepository.DeleteEstimateDetail(estimateId);
+
+                    // トランザクションのコミット
                     transaction.Commit();
                 }
                 catch (Exception ex)
                 {
+                    // トランザクションのロールバック
                     transaction.Rollback();
                     ErrorHandler.ShowErrorMessage("データの削除エラー", ex);
                 }
             }
         }
+
 
         public List<Estimate> GetAllEstimates()
         {

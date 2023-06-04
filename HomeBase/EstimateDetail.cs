@@ -82,7 +82,7 @@ namespace HomeBase
             _dbManager = dbManager;
         }
 
-        public void InsertEstimateDetail(EstimateDetail estimateDetail)
+        public void InsertEstimateDetail(EstimateDetail estimateDetail, int estimateId)
         {
             using (SQLiteConnection connection = _dbManager.Connection)
             using (SQLiteCommand command = connection.CreateCommand())
