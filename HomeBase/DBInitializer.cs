@@ -46,6 +46,8 @@ namespace HomeBase
             CreateSubcontractorTable(connection);
             CreateProjectTable(connection);
             CreateSpecificationDocumentTable(connection);
+            CreateDrawingTable(connection);
+            CreateRepairHistoryTable(connection);
         }
 
 
@@ -62,6 +64,8 @@ namespace HomeBase
             SubcontractorRepository subcontractorRepository = new SubcontractorRepository(_dbManager);
             ProjectRepository projectRepository = new ProjectRepository(_dbManager);
             SpecificationDocumentRepository specificationDocumentRepository = new SpecificationDocumentRepository(_dbManager);
+            DrawingRepository drawingRepository = new DrawingRepository(_dbManager);
+            RepairHistoryRepository repairHistoryRepository = new RepairHistoryRepository(_dbManager);
         }
 
 
@@ -102,7 +106,6 @@ namespace HomeBase
 
             ExecuteNonQuery(connection, createQuery);
         }
-
 
         private void CreateConstructionTable(SQLiteConnection connection)
         {
@@ -239,19 +242,53 @@ namespace HomeBase
         private void CreateSpecificationDocumentTable(SQLiteConnection connection)
         {
             string createQuery = @"
-        CREATE TABLE IF NOT EXISTS SpecificationDocument (
-            DocumentId INTEGER PRIMARY KEY AUTOINCREMENT,
-            DocumentName TEXT,
-            DocumentType TEXT,
+                CREATE TABLE IF NOT EXISTS SpecificationDocument (
+                    DocumentId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    DocumentName TEXT,
+                    DocumentType TEXT,
+                    ProjectId INTEGER,
+                    ItemName TEXT,
+                    Specification TEXT,
+                    ConstructionRoom TEXT,
+                    ConstructionSection TEXT,
+                    DetailId INTEGER,
+                    ConstructionDate DATE,
+                    ServiceLife INTEGER,
+                    FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
+                );
+            ";
+
+            ExecuteNonQuery(connection, createQuery);
+        }
+
+        private void CreateDrawingTable(SQLiteConnection connection)
+        {
+            string createQuery = @"
+                CREATE TABLE IF NOT EXISTS Drawing (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    DrawingName TEXT,
+                    Description TEXT,
+                    DrawingPdf BLOB,
+                    CreatedDate DATETIME,
+                    BuildingInfoId INTEGER,
+                    FOREIGN KEY (BuildingInfoId) REFERENCES BuildingInfo (Id)
+                );
+            ";
+
+            ExecuteNonQuery(connection, createQuery);
+        }
+
+        private void CreateRepairHistoryTable(SQLiteConnection connection)
+        {
+            string createQuery = @"
+        CREATE TABLE IF NOT EXISTS RepairHistory (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
             ProjectId INTEGER,
-            ItemName TEXT,
-            Specification TEXT,
-            ConstructionRoom TEXT,
-            ConstructionSection TEXT,
-            DetailId INTEGER,
-            ConstructionDate DATE,
-            ServiceLife INTEGER,
-            FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
+            Description TEXT,
+            Date DATE,
+            BuildingInfoId INTEGER,
+            FOREIGN KEY (ProjectId) REFERENCES Projects (Id),
+            FOREIGN KEY (BuildingInfoId) REFERENCES BuildingInfo (Id)
         );
     ";
 

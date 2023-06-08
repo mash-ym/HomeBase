@@ -18,6 +18,7 @@ namespace HomeBase
         public List<ConstructionRequest> ConstructionRequests { get; set; }
         public List<Estimate> Estimates { get; set; }
         public List<SpecificationDocument> SpecificationDocuments { get; set; }
+        public List<Drawing> Drawings { get; set; }
     }
     public class ProjectRepository
     {
@@ -89,6 +90,34 @@ namespace HomeBase
                 }
             }
         }
+        public void DeleteProject(int projectId)
+        {
+            using (SQLiteConnection connection = _dbManager.Connection)
+            using (SQLiteCommand command = connection.CreateCommand())
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    // プロジェクトを削除する前に関連するデータを削除
+                    // 例: 関連する見積書を削除するメソッド: DeleteEstimatesByProjectId(projectId)
+                    //     関連する修理履歴を削除するメソッド: DeleteRepairHistoriesByProjectId(projectId)
+                    //     ...
+
+                    // プロジェクトを削除
+                    command.CommandText = "DELETE FROM Project WHERE Id = @ProjectId";
+                    command.Parameters.AddWithValue("@ProjectId", projectId);
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new Exception("Failed to delete Project.", ex);
+                }
+            }
+        }
+
         public List<Project> GetAllProjects()
         {
             List<Project> projects = new List<Project>();
