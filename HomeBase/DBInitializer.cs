@@ -48,6 +48,7 @@ namespace HomeBase
             CreateSpecificationDocumentTable(connection);
             CreateDrawingTable(connection);
             CreateRepairHistoryTable(connection);
+            CreateInitialSetupDataTable(connection);
         }
 
 
@@ -67,7 +68,6 @@ namespace HomeBase
             DrawingRepository drawingRepository = new DrawingRepository(_dbManager);
             RepairHistoryRepository repairHistoryRepository = new RepairHistoryRepository(_dbManager);
         }
-
 
         private void CreateCustomerInfoTable(SQLiteConnection connection)
         {
@@ -153,7 +153,6 @@ namespace HomeBase
 
             ExecuteNonQuery(connection, createQuery);
         }
-
 
         private void CreateEstimateDetailTable(SQLiteConnection connection)
         {
@@ -281,16 +280,38 @@ namespace HomeBase
         private void CreateRepairHistoryTable(SQLiteConnection connection)
         {
             string createQuery = @"
-        CREATE TABLE IF NOT EXISTS RepairHistory (
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ProjectId INTEGER,
-            Description TEXT,
-            Date DATE,
-            BuildingInfoId INTEGER,
-            FOREIGN KEY (ProjectId) REFERENCES Projects (Id),
-            FOREIGN KEY (BuildingInfoId) REFERENCES BuildingInfo (Id)
-        );
-    ";
+                CREATE TABLE IF NOT EXISTS RepairHistory (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ProjectId INTEGER,
+                    Description TEXT,
+                    Date DATE,
+                    BuildingInfoId INTEGER,
+                    FOREIGN KEY (ProjectId) REFERENCES Projects (Id),
+                    FOREIGN KEY (BuildingInfoId) REFERENCES BuildingInfo (Id)
+                );
+            ";
+
+            ExecuteNonQuery(connection, createQuery);
+        }
+
+        private void CreateInitialSetupDataTable(SQLiteConnection connection)
+        {
+            string createQuery = @"
+                CREATE TABLE IF NOT EXISTS InitialSetup (
+                    CompanyName TEXT,
+                    CompanyAddress TEXT,
+                    UserEmail TEXT,
+                    Username TEXT,
+                    Password TEXT,
+                    PasswordComplexity INTEGER,
+                    PasswordExpiration INTEGER,
+                    Role TEXT,
+                    SecurityGroups TEXT,
+                    ApiKey TEXT,
+                    AuthToken TEXT,
+                    EndpointUrl TEXT
+                );
+            ";
 
             ExecuteNonQuery(connection, createQuery);
         }
